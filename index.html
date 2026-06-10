@@ -245,11 +245,16 @@
   .tnode .nm{font-weight:800;font-size:14px}
   .tnode .st{font-size:12px;color:var(--muted);font-weight:600;margin-top:2px}
   .tnode .stars{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:15px;letter-spacing:1px}
-  .missed-item{display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--line)}
-  .missed-item:first-of-type{border-top:none}
-  .missed-item .nm{font-weight:700;font-size:13.5px}
-  .missed-item .why{font-size:11.5px;color:var(--muted);font-weight:600}
-  .missed-item .btn{margin-left:auto;padding:8px 14px;font-size:12.5px}
+  .hwlist-item{display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--line)}
+  .hwlist-item:first-of-type{border-top:none}
+  .hwlist-item .nm{font-weight:700;font-size:13.5px}
+  .hwlist-item .why{font-size:11.5px;color:var(--muted);font-weight:600;margin-top:1px}
+  .hwlist-item .right{margin-left:auto}
+  .hwlist-item .btn{padding:8px 14px;font-size:12.5px}
+  .hw-stars{font-size:16px;letter-spacing:1px;color:#F5B301;white-space:nowrap}
+  .hw-stars .dim{color:var(--line)}
+  .big-stars{font-size:42px;letter-spacing:5px;color:#F5B301;margin:2px 0}
+  .big-stars .dim{color:var(--line)}
 
   /* stub screens */
   .stub{max-width:620px;margin:50px auto;text-align:center}
@@ -414,6 +419,14 @@ const HOMEWORK=[
  {q:"44 ÷ 6 = ?", opts:["6, остаток 8","7, остаток 2","8, остаток 4"], ok:1},
  {q:"61 ÷ 10 = ?", opts:["6, остаток 1","5, остаток 11","6, остаток 0"], ok:0},
 ];
+const HW_HISTORY=[
+ {nm:"Умножение на двузначное число", date:"Урок 83 · 28 мая", stars:3},
+ {nm:"Площадь прямоугольника", date:"Урок 82 · 26 мая", stars:2},
+ {nm:"Уравнения с одним неизвестным", date:"Урок 81 · 21 мая", stars:3},
+ {nm:"Скорость, время, расстояние", date:"Урок 79 · 12 мая · была на больничном", missed:true},
+];
+const starsFor=(ok,total)=>{const r=ok/total;return r>=0.8?3:r>=0.5?2:1;};
+const starsHTML=(n,big)=>`<span class="${big?"big-stars":"hw-stars"}">${"★".repeat(n)}<span class="dim">${"★".repeat(3-n)}</span></span>`;
 const TOPICS=[
  {nm:"Умножение на двузначное число"},
  {nm:"Площадь прямоугольника"},
@@ -703,12 +716,14 @@ function s11(){
   st.hwFinished=true;
   const ok=st.hdone.length?st.hdone.filter(Boolean).length:5;
   const wrongIdx=st.hdone.length?st.hdone.findIndex(v=>v===false):2;
+  const stars=starsFor(ok,6);
   return `<div class="p-pad">${pTop("Домашка сдана!")}
-    <div class="pcard center" style="gap:6px;padding:24px">
-      <div style="font-size:48px">🎉</div>
+    <div class="pcard center" style="gap:4px;padding:24px">
+      <div style="font-size:40px">🎉</div>
+      ${starsHTML(stars,true)}
       <h2 class="kid" style="font-size:20px">Решено верно: ${ok} из 6</h2>
-      <span class="pill green">✅ Сдана в срок — уже 8 из 9!</span>
-      <div class="sub">Учитель утром увидит твой результат</div>
+      <div class="sub">${stars===3?"Отличная работа!":stars===2?"Хорошо! Есть пара ошибок — давай разберём":"Давай разберём ошибки вместе"}</div>
+      <div class="sub" style="font-size:12px">Учитель утром увидит твой результат</div>
     </div>
     ${ok<6?`<div class="pcard">
       <div class="hd"><span class="t">Разбор ошибки</span></div>
@@ -735,12 +750,14 @@ function s12(){
         </div>`).join("")}</div>
     </div>
     <div class="pcard">
-      <div class="hd"><span class="t">📒 Домашки</span><span style="margin-left:auto" class="pmeta">7 из 8 в срок</span></div>
-      <div class="missed-item">
-        <div><div class="nm">Скорость, время, расстояние</div>
-        <div class="why">Урок 79 · 12 мая · ты болела — можно порешать сейчас</div></div>
-        <button class="btn soft" onclick="toast('Откроем задания урока 79 — без спешки, это не на оценку')">Догнать</button>
-      </div>
+      <div class="hd"><span class="t">📒 Мои домашки</span><span style="margin-left:auto" class="pmeta">7 из 8 в срок</span></div>
+      ${HW_HISTORY.map(h=>`
+        <div class="hwlist-item">
+          <div><div class="nm">${h.nm}</div><div class="why">${h.date}</div></div>
+          <div class="right">${h.missed
+            ?`<button class="btn soft" onclick="toast('Откроем задания урока 79 — без спешки, это не на оценку')">Догнать</button>`
+            :starsHTML(h.stars)}</div>
+        </div>`).join("")}
     </div></div>`;
 }
 
