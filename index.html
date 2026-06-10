@@ -24,7 +24,8 @@
   button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
 
   /* ===== Review shell (same chrome as teacher prototype) ===== */
-  .app{display:grid;grid-template-columns:250px 1fr;grid-template-rows:64px 1fr;min-height:100vh}
+  body{overflow:hidden}
+  .app{display:grid;grid-template-columns:250px 1fr;grid-template-rows:64px 1fr;height:100vh}
   header{grid-column:1/3;display:flex;align-items:center;gap:18px;padding:0 22px;background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30}
   .logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px}
   .logo .mark svg{width:30px;height:34px;display:block}
@@ -47,10 +48,10 @@
   .nav-spacer{flex:1}
   .nav-foot{padding:12px 14px;font-size:11px;color:var(--muted);border-top:1px solid var(--line)}
 
-  main{padding:18px 26px 30px;overflow:auto;display:flex;flex-direction:column;align-items:center}
+  main{padding:14px 26px 16px;overflow:hidden;display:flex;flex-direction:column;align-items:center}
 
   /* Demo bar above the device */
-  .demo-bar{width:100%;max-width:1140px;display:flex;align-items:center;gap:10px;margin-bottom:14px;min-height:38px}
+  .demo-bar{width:100%;max-width:1140px;display:flex;align-items:center;gap:10px;margin-bottom:10px;min-height:36px;flex-shrink:0}
   .demo-bar .lbl{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
   .demo-btn{background:var(--surface);border:1.5px dashed var(--accent);color:var(--accent);font-weight:700;font-size:12.5px;padding:7px 14px;border-radius:999px;transition:.12s}
   .demo-btn:hover{background:var(--accent-soft)}
@@ -58,7 +59,8 @@
   .demo-note{font-size:12px;color:var(--muted)}
 
   /* ===== Device frames ===== */
-  .stage{display:flex;justify-content:center;width:100%}
+  .stage{display:flex;justify-content:center;width:100%;flex:1;min-height:0}
+  .devwrap{transform-origin:top center}
   .tablet{width:1100px;max-width:100%;background:#1B1B1F;border-radius:26px;padding:16px;box-shadow:0 20px 50px rgba(16,24,40,.25)}
   .tablet .cam{width:7px;height:7px;border-radius:50%;background:#3a3a42;margin:0 auto 10px}
   .tscreen{background:var(--bg);border-radius:14px;height:680px;overflow:auto;position:relative}
@@ -83,7 +85,6 @@
   .pill.accent{background:var(--accent-soft);color:var(--accent);border-color:transparent}
   .pill.green{background:var(--green-soft);color:var(--green);border-color:transparent}
   .pill.amber{background:var(--amber-soft);color:#B9871F;border-color:transparent}
-  .pill.stars{background:var(--surface);border:1px solid var(--line)}
 
   .bigcard{background:var(--surface);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:26px 30px}
   .center{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
@@ -148,7 +149,6 @@
 
   /* practice */
   .prac-top{display:flex;align-items:center;gap:12px;margin-bottom:16px}
-  .track-badge{display:inline-flex;align-items:center;gap:8px;background:var(--blue-soft);color:var(--blue);font-weight:800;border-radius:999px;padding:8px 18px;font-size:14px}
   .prac-prog{margin-left:auto;display:flex;align-items:center;gap:8px;font-weight:700;color:var(--muted);font-size:13px}
   .task-card{background:var(--surface);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:30px 36px;max-width:760px;margin:0 auto}
   .task-num{font-size:12px;font-weight:800;color:var(--accent);letter-spacing:.05em;text-transform:uppercase;margin-bottom:10px}
@@ -193,13 +193,11 @@
   .emo.sel .l{color:var(--accent)}
 
   /* finish */
-  .stars-row{display:flex;gap:10px;justify-content:center;font-size:46px;margin:10px 0}
   .finish-stats{display:flex;gap:14px;justify-content:center;margin:20px 0;flex-wrap:wrap}
   .fstat{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 24px;min-width:150px;text-align:center}
   .fstat .v{font-size:26px;font-weight:800}
   .fstat .v.green{color:var(--green)} .fstat .v.accent{color:var(--accent)}
   .fstat .l{font-size:12px;color:var(--muted);font-weight:600;margin-top:2px}
-  .sticker-award{width:110px;height:110px;border-radius:50%;background:var(--yellow);display:grid;place-items:center;font-size:54px;margin:6px auto;box-shadow:0 2.3px 4.6px rgba(0,0,0,.3);transform:rotate(-6deg)}
   .hw-card{display:flex;align-items:center;gap:16px;background:var(--accent-soft);border-radius:18px;padding:18px 24px;max-width:560px;margin:18px auto 0;text-align:left}
   .hw-card .ic{font-size:34px}
   .hw-card b{font-size:15.5px}
@@ -247,10 +245,11 @@
   .tnode .nm{font-weight:800;font-size:14px}
   .tnode .st{font-size:12px;color:var(--muted);font-weight:600;margin-top:2px}
   .tnode .stars{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:15px;letter-spacing:1px}
-  .stickers-strip{display:flex;gap:10px;flex-wrap:wrap}
-  .stk{width:54px;height:54px;border-radius:50%;background:var(--yellow);display:grid;place-items:center;font-size:26px;box-shadow:0 2.3px 4.6px rgba(0,0,0,.25)}
-  .stk:nth-child(2n){transform:rotate(7deg)} .stk:nth-child(3n){transform:rotate(-8deg)}
-  .stk.empty{background:var(--gray-soft);box-shadow:none;color:var(--gray)}
+  .missed-item{display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--line)}
+  .missed-item:first-of-type{border-top:none}
+  .missed-item .nm{font-weight:700;font-size:13.5px}
+  .missed-item .why{font-size:11.5px;color:var(--muted);font-weight:600}
+  .missed-item .btn{margin-left:auto;padding:8px 14px;font-size:12.5px}
 
   /* stub screens */
   .stub{max-width:620px;margin:50px auto;text-align:center}
@@ -333,17 +332,32 @@ function go(id){
   document.getElementById("devPhone").style.display=scr.dev==="phone"?"":"none";
   render();
 }
+
+/* fit the visible device into the viewport — no page scroll */
+function fitStage(){
+  const scr=SCREENS.find(s=>s.id===cur);
+  const dev=document.getElementById(scr.dev==="tablet"?"devTablet":"devPhone");
+  dev.style.transform="none";
+  const stage=dev.parentNode;
+  const r=dev.getBoundingClientRect();
+  const availH=window.innerHeight-stage.getBoundingClientRect().top-14;
+  const availW=stage.clientWidth;
+  const sc=Math.min(1,availH/r.height,availW/r.width);
+  dev.style.transformOrigin="top center";
+  dev.style.transform=`scale(${sc})`;
+}
+window.addEventListener("resize",fitStage);
 function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("on");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("on"),2400);}
 
 /* ================= demo bar (teacher-signal simulation) ================= */
 const DEMO={
  s1:[{l:"▶ Учитель нажал «Начать урок»",f:()=>{toast("Сигнал учителя: урок начался");go('s2')}}],
- s2:[],
+ s2:[{l:"▶ Учитель начал объяснение",f:()=>go('s3')}],
  s3:[{l:"▶ Учитель перелистнул слайд",f:()=>{st.slide=(st.slide+1)%3;render()}},{l:"▶ Учитель начал практику",f:()=>go('s4')}],
- s4:[],
+ s4:[{l:"▶ Учитель запустил рефлексию",f:()=>go('s7')}],
  s5:[],
  s6:[{l:"▶ Учитель подошёл и помог",f:()=>{toast("Учитель помог разобраться");st.stuck=false;go('s4')}}],
- s7:[],
+ s7:[{l:"▶ Учитель завершил урок и выдал ДЗ",f:()=>go('s8')}],
  s8:[{l:"📱 Вечером дома: открыть телефон",f:()=>go('s9')}],
  s9:[],s10:[],s11:[],s12:[],s13:[],s14:[],
 };
@@ -401,10 +415,10 @@ const HOMEWORK=[
  {q:"61 ÷ 10 = ?", opts:["6, остаток 1","5, остаток 11","6, остаток 0"], ok:0},
 ];
 const TOPICS=[
- {nm:"Умножение на двузначное число", stars:3},
- {nm:"Площадь прямоугольника", stars:2},
- {nm:"Уравнения с одним неизвестным", stars:3},
- {nm:"Скорость, время, расстояние", stars:1, redo:true},
+ {nm:"Умножение на двузначное число"},
+ {nm:"Площадь прямоугольника"},
+ {nm:"Уравнения с одним неизвестным"},
+ {nm:"Скорость, время, расстояние", redo:true},
  {nm:"Деление с остатком", cur:true},
  {nm:"Деление многозначных чисел", locked:true},
  {nm:"Дроби: знакомство", locked:true},
@@ -416,13 +430,14 @@ function render(){
   const scr=SCREENS.find(s=>s.id===cur);
   const host=document.getElementById(scr.dev==="tablet"?"tscreen":"pscreen");
   host.innerHTML=({s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14})[cur]();
+  fitStage();
 }
 
 const tabletTop=(phase)=>`
  <div class="t-top">
    <div class="who"><span class="kid-ava">🦊</span> Айсель</div>
    <span class="ctx">4-А · Урок 84 · Деление с остатком</span>
-   <div class="right">${phase?`<span class="pill accent">${phase}</span>`:""}<span class="pill stars">⭐ 47</span></div>
+   <div class="right">${phase?`<span class="pill accent">${phase}</span>`:""}</div>
  </div>`;
 
 const phasebar=(n)=>{
@@ -453,8 +468,8 @@ function s2(){
       <div class="bigcard center" style="margin-top:60px;gap:10px;max-width:640px;margin-left:auto;margin-right:auto">
         <div style="font-size:52px">${ok===3?"🎉":"💪"}</div>
         <h2 class="kid">Разминка пройдена: ${ok} из 3</h2>
-        <div class="sub">Ответы уже у учителя на экране. Ждём, когда начнётся объяснение…</div>
-        <button class="btn soft" onclick="go('s3')">Дальше: объяснение →</button>
+        <div class="sub">Ответы уже у учителя на экране</div>
+        <div class="pulse" style="margin-top:8px"><span class="dot"></span> Ждём, когда учитель начнёт объяснение</div>
       </div></div>`;
   }
   const w=WARMUP[i], a=st.ansState;
@@ -497,14 +512,14 @@ function s4(){
     return `<div class="t-pad">${tabletTop("Практика")}${phasebar(3)}
       <div class="bigcard center" style="margin-top:50px;gap:10px;max-width:640px;margin-left:auto;margin-right:auto">
         <div style="font-size:52px">🚀</div>
-        <h2 class="kid">Все задачи маршрута решены!</h2>
+        <h2 class="kid">Все задачи решены!</h2>
         <div class="sub">Решено верно: ${st.pracOk} из 2 на планшете + 1 в тетради (проверим к утру)</div>
-        <button class="btn soft" onclick="go('s7')">Дальше: рефлексия →</button>
+        <div class="pulse" style="margin-top:8px"><span class="dot"></span> Скоро рефлексия — её запустит учитель</div>
       </div></div>`;
   }
   const t=PRACTICE[i];
   const head=`<div class="prac-top">
-      <span class="track-badge">🚀 Твой маршрут: Орбита</span>
+      <span class="pill accent">✏️ Решаем сами</span>
       <span class="prac-prog">Задача ${i+1} из ${PRACTICE.length} · решено верно: ${st.pracOk}</span>
     </div>`;
   if(t.type==="written"){
@@ -600,7 +615,7 @@ function s7(){
       <div style="font-size:52px">${EMOJIS[st.refl][0]}</div>
       <h2 class="kid">Спасибо, что поделилась!</h2>
       <div class="sub">Твой ответ поможет подобрать задания специально для тебя</div>
-      <button class="btn soft" onclick="go('s8')">Завершить урок →</button>
+      <div class="pulse" style="margin-top:8px"><span class="dot"></span> Учитель завершит урок — и появится итог</div>
     </div></div>`;
   return `<div class="t-pad">${tabletTop("Рефлексия")}${phasebar(4)}
     <div class="center" style="margin-top:36px">
@@ -614,16 +629,14 @@ function s7(){
 /* ----- S8 finished ----- */
 function s8(){
   return `<div class="t-pad">${tabletTop("")}
-    <div class="center" style="margin-top:14px">
-      <div class="stars-row">⭐⭐⭐</div>
+    <div class="center" style="margin-top:30px">
+      <div style="font-size:56px">🎉</div>
       <h1 class="kid">Урок пройден, Айсель!</h1>
       <div class="finish-stats">
         <div class="fstat"><div class="v accent">8</div><div class="l">задач решено</div></div>
         <div class="fstat"><div class="v green">6</div><div class="l">верно с 1-й попытки</div></div>
-        <div class="fstat"><div class="v">+3 ⭐</div><div class="l">звёзды за урок</div></div>
+        <div class="fstat"><div class="v">🌙 1</div><div class="l">решение проверим к утру</div></div>
       </div>
-      <div class="sticker-award">🦉</div>
-      <div class="sub" style="font-weight:700">Новый стикер: «Мудрая сова деления»!</div>
       <div class="hw-card">
         <span class="ic">📱</span>
         <div><b>Домашка уже в твоём телефоне</b>
@@ -634,7 +647,7 @@ function s8(){
 
 /* ================= PHONE ================= */
 function pTop(title){
-  return `<div class="p-greet"><span class="kid-ava">🦊</span><div><h2>${title}</h2><div class="sub">Айсель · 4-А</div></div><span class="pill stars" style="margin-left:auto">⭐ 50</span></div>`;
+  return `<div class="p-greet"><span class="kid-ava">🦊</span><div><h2>${title}</h2><div class="sub">Айсель · 4-А</div></div></div>`;
 }
 
 /* ----- S9 phone home ----- */
@@ -651,13 +664,12 @@ function s9(){
         :`<button class="btn primary" style="width:100%" onclick="go('s10')">${solved?"Продолжить":"Начать"} →</button>`}</div>
     </div>
     <div class="prow" style="margin-bottom:14px">
-      <div class="pcard"><div class="v">🔥 4</div><div class="l">дня подряд</div></div>
-      <div class="pcard"><div class="v">⭐ 50</div><div class="l">звёзд всего</div></div>
-      <div class="pcard"><div class="v">🏅 12</div><div class="l">стикеров</div></div>
+      <div class="pcard"><div class="v">✅ 7 из 8</div><div class="l">домашек сдано в срок</div></div>
+      <div class="pcard" style="cursor:pointer" onclick="go('s12')"><div class="v">📥 1</div><div class="l">пропущена — можно догнать</div></div>
     </div>
     <div class="pcard" style="cursor:pointer" onclick="go('s12')">
       <div class="hd"><span style="font-size:20px">🗺️</span><span class="t">Мой прогресс</span><span style="margin-left:auto;color:var(--muted)">›</span></div>
-      <div class="pmeta">Сейчас: Деление с остатком · 4 темы со звёздами подряд!</div>
+      <div class="pmeta">Сейчас: Деление с остатком</div>
     </div></div>`;
 }
 
@@ -695,9 +707,8 @@ function s11(){
     <div class="pcard center" style="gap:6px;padding:24px">
       <div style="font-size:48px">🎉</div>
       <h2 class="kid" style="font-size:20px">Решено верно: ${ok} из 6</h2>
+      <span class="pill green">✅ Сдана в срок — уже 8 из 9!</span>
       <div class="sub">Учитель утром увидит твой результат</div>
-      <div class="sticker-award" style="width:84px;height:84px;font-size:40px">🐢</div>
-      <div class="sub" style="font-weight:700">Стикер: «Черепаха-трудяга»</div>
     </div>
     ${ok<6?`<div class="pcard">
       <div class="hd"><span class="t">Разбор ошибки</span></div>
@@ -720,13 +731,15 @@ function s12(){
         <div class="tnode ${t.cur?"cur":""} ${t.locked?"locked":""}">
           <div class="nm">${t.nm}</div>
           <div class="st">${t.cur?"Учим сейчас":t.locked?"Откроется дальше":t.redo?"Стоит повторить":"Пройдено"}</div>
-          ${t.stars?`<span class="stars">${"⭐".repeat(t.stars)}</span>`:t.cur?`<span class="stars">✏️</span>`:t.locked?`<span class="stars">🔒</span>`:""}
+          <span class="stars">${t.cur?"✏️":t.locked?"🔒":t.redo?"↺":"✓"}</span>
         </div>`).join("")}</div>
     </div>
     <div class="pcard">
-      <div class="hd"><span class="t">🏅 Мои стикеры</span><span style="margin-left:auto" class="pmeta">12 из 30</span></div>
-      <div class="stickers-strip">
-        <span class="stk">🦉</span><span class="stk">🐢</span><span class="stk">🚀</span><span class="stk">🧮</span><span class="stk">🦊</span><span class="stk">🌟</span><span class="stk empty">?</span><span class="stk empty">?</span>
+      <div class="hd"><span class="t">📒 Домашки</span><span style="margin-left:auto" class="pmeta">7 из 8 в срок</span></div>
+      <div class="missed-item">
+        <div><div class="nm">Скорость, время, расстояние</div>
+        <div class="why">Урок 79 · 12 мая · ты болела — можно порешать сейчас</div></div>
+        <button class="btn soft" onclick="toast('Откроем задания урока 79 — без спешки, это не на оценку')">Догнать</button>
       </div>
     </div></div>`;
 }
