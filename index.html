@@ -59,7 +59,7 @@
   .demo-note{font-size:12px;color:var(--muted)}
 
   /* ===== Device frames ===== */
-  .stage{display:flex;justify-content:center;width:100%;flex:1;min-height:0}
+  .stage{display:flex;justify-content:center;align-items:flex-start;width:100%;flex:1;min-height:0;overflow:hidden}
   .devwrap{transform-origin:top center}
   .tablet{width:1100px;max-width:100%;background:#1B1B1F;border-radius:26px;padding:16px;box-shadow:0 20px 50px rgba(16,24,40,.25)}
   .tablet .cam{width:7px;height:7px;border-radius:50%;background:#3a3a42;margin:0 auto 10px}
@@ -362,20 +362,22 @@ function fitContent(){
   fc.style.transform=`scale(${sc})`;
 }
 
-/* fit the visible device into the viewport — no page scroll */
+/* fit the visible device into the available stage area — no page scroll, no clipping */
 function fitStage(){
   const scr=SCREENS.find(s=>s.id===cur);
   const dev=document.getElementById(scr.dev==="tablet"?"devTablet":"devPhone");
-  dev.style.transform="none";
   const stage=dev.parentNode;
-  const r=dev.getBoundingClientRect();
-  const availH=window.innerHeight-stage.getBoundingClientRect().top-14;
-  const availW=stage.clientWidth;
-  const sc=Math.min(1,availH/r.height,availW/r.width);
+  dev.style.transform="none";
+  const dh=dev.offsetHeight, dw=dev.offsetWidth;
+  const sh=stage.clientHeight, sw=stage.clientWidth;
+  if(!dh||!sh)return;
+  const sc=Math.min(1, sh/dh, sw/dw);
   dev.style.transformOrigin="top center";
   dev.style.transform=`scale(${sc})`;
 }
-window.addEventListener("resize",()=>{fitContent();fitStage();});
+function fitAll(){fitContent();fitStage();}
+window.addEventListener("resize",fitAll);
+window.addEventListener("load",()=>requestAnimationFrame(fitAll));
 function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("on");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("on"),2400);}
 
 /* ================= demo bar (teacher-signal simulation) ================= */
