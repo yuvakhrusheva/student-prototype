@@ -1,0 +1,23 @@
+{
+  "name": "student-prototype",
+  "version": "1.0.0",
+  "description": "Кликабельный прототип приложения ученика для проекта «Intelligent Math Classroom on Tablets» (Азербайджан, 4 класс). Парный к [прототипу учителя](https://github.com/yuvakhrusheva/teacher-prototype) — тот же класс (4-А, школа №297), тот же урок 84 «Деление с остатком».",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yuvakhrusheva/student-prototype.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yuvakhrusheva/student-prototype/issues"
+  },
+  "homepage": "https://github.com/yuvakhrusheva/student-prototype#readme",
+  "dependencies": {
+    "playwright": "^1.60.0"
+  }
+}

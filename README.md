@@ -26,3 +26,13 @@
 Открыть `index.html` в браузере — или [GitHub Pages](https://yuvakhrusheva.github.io/student-prototype/).
 
 Прототип на мок-данных, для ревью продуктовых решений.
+
+## Экспорт экранов (для Figma)
+
+Готовые ретина-скриншоты всех экранов лежат в [`_screens/`](_screens/) с подписями в [`_screens/CAPTIONS.md`](_screens/CAPTIONS.md).
+
+Перегенерировать:
+```
+npm install && npx playwright install chromium
+node _gen_screens.mjs
+```
