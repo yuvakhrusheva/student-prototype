@@ -226,6 +226,10 @@
   .p-opt.sel-ok{border-color:var(--green);background:var(--green-soft);color:var(--green)}
   .p-opt.sel-bad{border-color:var(--coral);background:var(--coral-soft);color:var(--coral)}
   .p-opt.show-ok{border-color:var(--green)}
+  .fb-topic{font-size:12.5px;font-weight:700;color:var(--accent);background:var(--accent-soft);display:inline-block;padding:3px 10px;border-radius:999px;margin-bottom:4px}
+  .fb-line{display:flex;gap:9px;align-items:flex-start;font-size:13px;line-height:1.45;margin-top:9px}
+  .fb-line .ic{font-size:15px;flex-shrink:0;line-height:1.4}
+  .fb-line.grow{background:var(--amber-soft);border-radius:12px;padding:10px 12px;margin-top:10px}
   .hw-dots{display:flex;gap:6px;justify-content:center;margin-bottom:12px}
   .hw-dot{width:22px;height:7px;border-radius:99px;background:var(--line)}
   .hw-dot.cur{background:var(--accent)} .hw-dot.ok{background:var(--green)} .hw-dot.bad{background:var(--coral)}
@@ -439,6 +443,11 @@ const HOMEWORK=[
  {q:"44 ÷ 6 = ?", opts:["6, остаток 8","7, остаток 2","8, остаток 4"], ok:1},
  {q:"61 ÷ 10 = ?", opts:["6, остаток 1","5, остаток 11","6, остаток 0"], ok:0},
 ];
+const FEEDBACK={
+  topic:"Деление с остатком",
+  good:"Уверенно находишь, сколько выходит целых групп и какой получается остаток.",
+  grow:"Стоит ещё потренировать проверку умножением — поэтому в домашке есть похожие задачи.",
+};
 const HW_HISTORY=[
  {nm:"Умножение на двузначное число", date:"Урок 83 · 28 мая", stars:3},
  {nm:"Площадь прямоугольника", date:"Урок 82 · 26 мая", stars:2},
@@ -696,6 +705,12 @@ function s9(){
       <div style="margin-top:12px">${done
         ?`<button class="btn soft" style="width:100%" onclick="go('s11')">Посмотреть результат</button>`
         :`<button class="btn primary" style="width:100%" onclick="go('s10')">${solved?"Продолжить":"Начать"} →</button>`}</div>
+    </div>
+    <div class="pcard">
+      <div class="hd"><span style="font-size:20px">📊</span><span class="t">По итогам урока</span></div>
+      <span class="fb-topic">${FEEDBACK.topic}</span>
+      <div class="fb-line good"><span class="ic">✅</span><span>${FEEDBACK.good}</span></div>
+      <div class="fb-line grow"><span class="ic">🎯</span><span>${FEEDBACK.grow}</span></div>
     </div>
     <div class="prow" style="margin-bottom:14px">
       <div class="pcard"><div class="v">✅ 7 из 8</div><div class="l">домашек сдано в срок</div></div>
