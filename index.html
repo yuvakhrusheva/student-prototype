@@ -63,11 +63,11 @@
   .devwrap{transform-origin:top center}
   .tablet{width:1100px;max-width:100%;background:#1B1B1F;border-radius:26px;padding:16px;box-shadow:0 20px 50px rgba(16,24,40,.25)}
   .tablet .cam{width:7px;height:7px;border-radius:50%;background:#3a3a42;margin:0 auto 10px}
-  .tscreen{background:var(--bg);border-radius:14px;height:680px;overflow:auto;position:relative}
+  .tscreen{background:var(--bg);border-radius:14px;height:680px;overflow:hidden;position:relative}
   .phone{width:400px;max-width:100%;background:#1B1B1F;border-radius:38px;padding:12px;box-shadow:0 20px 50px rgba(16,24,40,.25)}
   .phone .notch{width:110px;height:22px;background:#1B1B1F;border-radius:0 0 14px 14px;position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:5}
   .phone{position:relative}
-  .pscreen{background:var(--bg);border-radius:28px;height:780px;overflow:auto;position:relative}
+  .pscreen{background:var(--bg);border-radius:28px;height:780px;overflow:hidden;position:relative}
 
   .dscreen{display:none;min-height:100%}
   .dscreen.on{display:block}
@@ -338,6 +338,26 @@ function go(id){
   render();
 }
 
+/* scale a screen's content so it fully fits inside the device frame — no inner scroll */
+function fitContent(){
+  const scr=SCREENS.find(s=>s.id===cur);
+  const host=document.getElementById(scr.dev==="tablet"?"tscreen":"pscreen");
+  const fc=host.firstElementChild; if(!fc)return;
+  const sw=host.clientWidth, sh=host.clientHeight;
+  fc.style.transformOrigin="top left";
+  fc.style.transform="none"; fc.style.width=sw+"px";
+  if(fc.scrollHeight<=sh){fc.style.width="";return;}
+  // widen the wrapper so that, once scaled to fit the height, it still fills the frame width
+  let sc=sh/fc.scrollHeight;
+  for(let i=0;i<4;i++){
+    fc.style.width=(sw/sc)+"px";
+    const rendered=fc.scrollHeight*sc;
+    if(rendered<=sh+0.5)break;
+    sc*=sh/rendered;
+  }
+  fc.style.transform=`scale(${sc})`;
+}
+
 /* fit the visible device into the viewport — no page scroll */
 function fitStage(){
   const scr=SCREENS.find(s=>s.id===cur);
@@ -351,7 +371,7 @@ function fitStage(){
   dev.style.transformOrigin="top center";
   dev.style.transform=`scale(${sc})`;
 }
-window.addEventListener("resize",fitStage);
+window.addEventListener("resize",()=>{fitContent();fitStage();});
 function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("on");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("on"),2400);}
 
 /* ================= demo bar (teacher-signal simulation) ================= */
@@ -443,6 +463,7 @@ function render(){
   const scr=SCREENS.find(s=>s.id===cur);
   const host=document.getElementById(scr.dev==="tablet"?"tscreen":"pscreen");
   host.innerHTML=({s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14})[cur]();
+  fitContent();
   fitStage();
 }
 
