@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Интерфейс ученика · AI Math</title>
+<style>
+  @font-face{font-family:"Inter";src:url("Inter.ttf") format("truetype-variations"),url("Inter.ttf") format("truetype");font-weight:100 900;font-style:normal;font-display:swap}
+  :root{
+    --bg:#F2F2F3; --surface:#FFFFFF; --surface-2:#F5F2FC;
+    --ink:#101828; --muted:#667085; --line:#E5E5E8;
+    --accent:#5800E5; --accent-soft:#F5F2FC;
+    --green:#3BA55D; --green-soft:#E6F4EB;
+    --blue:#3B82F6; --blue-soft:#E7EEFE;
+    --amber:#E0A012; --amber-soft:#FBF0D5;
+    --coral:#E5484D; --coral-soft:#FCE4E4;
+    --gray:#B0AAB6; --gray-soft:#F2F2F3;
+    --lime:#D9FF00; --yellow:#FFDE26;
+    --shadow:0 4px 16px rgba(16,24,40,.08),0 1px 3px rgba(16,24,40,.05);
+    --radius:8px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Inter","Segoe UI",system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.45}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+
+  /* ===== Review shell (same chrome as teacher prototype) ===== */
+  .app{display:grid;grid-template-columns:250px 1fr;grid-template-rows:64px 1fr;min-height:100vh}
+  header{grid-column:1/3;display:flex;align-items:center;gap:18px;padding:0 22px;background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px}
+  .logo .mark svg{width:30px;height:34px;display:block}
+  .hdr-ctx{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px}
+  .hdr-ctx .chip{background:var(--surface-2);border:1px solid var(--line);padding:5px 12px;border-radius:999px;color:var(--ink);font-weight:600}
+  .hdr-ctx .lesson{color:var(--ink);font-weight:600}
+  .hdr-right{margin-left:auto;display:flex;align-items:center;gap:14px;font-size:12px;color:var(--muted)}
+  .avatar{width:36px;height:36px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:700}
+
+  aside{background:var(--surface);border-right:1px solid var(--line);padding:18px 12px;display:flex;flex-direction:column;gap:3px;overflow:auto}
+  .nav-group{font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:14px 14px 5px}
+  .nav-group:first-child{padding-top:2px}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:12px;color:var(--muted);font-weight:600;width:100%;text-align:left;font-size:13px}
+  .nav-item .ic{font-size:15px;width:18px;text-align:center}
+  .nav-item:hover{background:var(--surface-2)}
+  .nav-item.on{background:var(--accent-soft);color:var(--accent)}
+  .nav-item.disabled{opacity:.45;cursor:not-allowed}
+  .nav-item.disabled:hover{background:none}
+  .nav-soon{margin-left:auto;font-size:10px;background:var(--gray-soft);color:var(--muted);padding:2px 7px;border-radius:999px;font-weight:700}
+  .nav-spacer{flex:1}
+  .nav-foot{padding:12px 14px;font-size:11px;color:var(--muted);border-top:1px solid var(--line)}
+
+  main{padding:18px 26px 30px;overflow:auto;display:flex;flex-direction:column;align-items:center}
+
+  /* Demo bar above the device */
+  .demo-bar{width:100%;max-width:1140px;display:flex;align-items:center;gap:10px;margin-bottom:14px;min-height:38px}
+  .demo-bar .lbl{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+  .demo-btn{background:var(--surface);border:1.5px dashed var(--accent);color:var(--accent);font-weight:700;font-size:12.5px;padding:7px 14px;border-radius:999px;transition:.12s}
+  .demo-btn:hover{background:var(--accent-soft)}
+  .demo-btn.ghost{border-color:var(--line);color:var(--muted)}
+  .demo-note{font-size:12px;color:var(--muted)}
+
+  /* ===== Device frames ===== */
+  .stage{display:flex;justify-content:center;width:100%}
+  .tablet{width:1100px;max-width:100%;background:#1B1B1F;border-radius:26px;padding:16px;box-shadow:0 20px 50px rgba(16,24,40,.25)}
+  .tablet .cam{width:7px;height:7px;border-radius:50%;background:#3a3a42;margin:0 auto 10px}
+  .tscreen{background:var(--bg);border-radius:14px;height:680px;overflow:auto;position:relative}
+  .phone{width:400px;max-width:100%;background:#1B1B1F;border-radius:38px;padding:12px;box-shadow:0 20px 50px rgba(16,24,40,.25)}
+  .phone .notch{width:110px;height:22px;background:#1B1B1F;border-radius:0 0 14px 14px;position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:5}
+  .phone{position:relative}
+  .pscreen{background:var(--bg);border-radius:28px;height:780px;overflow:auto;position:relative}
+
+  .dscreen{display:none;min-height:100%}
+  .dscreen.on{display:block}
+
+  /* ===== Student UI (kid-friendly: large, round, warm) ===== */
+  .t-pad{padding:26px 34px}
+  .p-pad{padding:34px 20px 24px}
+
+  .t-top{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+  .t-top .who{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px}
+  .kid-ava{width:40px;height:40px;border-radius:14px;background:var(--yellow);display:grid;place-items:center;font-size:20px}
+  .t-top .ctx{color:var(--muted);font-size:13px;font-weight:600}
+  .t-top .right{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .pill{padding:6px 14px;border-radius:999px;font-weight:700;font-size:12.5px;background:var(--surface);border:1px solid var(--line)}
+  .pill.accent{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+  .pill.green{background:var(--green-soft);color:var(--green);border-color:transparent}
+  .pill.amber{background:var(--amber-soft);color:#B9871F;border-color:transparent}
+  .pill.stars{background:var(--surface);border:1px solid var(--line)}
+
+  .bigcard{background:var(--surface);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:26px 30px}
+  .center{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+
+  h1.kid{font-size:30px;font-weight:800;letter-spacing:-.02em}
+  h2.kid{font-size:22px;font-weight:800;letter-spacing:-.02em}
+  .sub{color:var(--muted);font-size:14px}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:800;border-radius:14px;transition:.12s;text-align:center}
+  .btn.primary{background:var(--accent);color:#fff;font-size:16px;padding:14px 30px}
+  .btn.primary:hover{background:#4800BF}
+  .btn.primary:disabled{opacity:.4;cursor:not-allowed}
+  .btn.soft{background:var(--accent-soft);color:var(--accent);font-size:14px;padding:11px 20px}
+  .btn.ghost{background:var(--surface);border:1.5px solid var(--line);color:var(--muted);font-size:14px;padding:11px 20px}
+  .btn.big{font-size:18px;padding:16px 36px;border-radius:16px}
+
+  /* waiting screen */
+  .wait-wrap{height:100%;display:flex;flex-direction:column}
+  .wait-hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center}
+  .wait-doodle{font-size:64px}
+  .pulse{display:inline-flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:10px 22px;font-weight:700;color:var(--muted)}
+  .pulse .dot{width:10px;height:10px;border-radius:50%;background:var(--amber);animation:pl 1.2s infinite}
+  @keyframes pl{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.75)}}
+
+  /* phase header inside lesson */
+  .phasebar{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+  .phasebar .ph{flex:1;height:8px;border-radius:99px;background:var(--line);position:relative;overflow:hidden}
+  .phasebar .ph.done{background:var(--green)}
+  .phasebar .ph.cur{background:var(--accent)}
+  .phasebar .nm{font-weight:800;font-size:14px}
+  .phasebar .tag{font-size:11.5px;font-weight:700;color:var(--muted)}
+
+  /* warm-up */
+  .q-progress{display:flex;gap:8px;justify-content:center;margin-bottom:14px}
+  .q-dot{width:34px;height:8px;border-radius:99px;background:var(--line)}
+  .q-dot.cur{background:var(--accent)} .q-dot.ok{background:var(--green)} .q-dot.bad{background:var(--coral)}
+  .question{font-size:34px;font-weight:800;text-align:center;margin:18px 0 26px;letter-spacing:-.02em}
+  .opts{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:640px;margin:0 auto}
+  .opt{background:var(--surface);border:2.5px solid var(--line);border-radius:18px;padding:20px;font-size:20px;font-weight:800;transition:.12s;text-align:center}
+  .opt:hover{border-color:var(--accent);transform:translateY(-2px)}
+  .opt.sel-ok{border-color:var(--green);background:var(--green-soft);color:var(--green)}
+  .opt.sel-bad{border-color:var(--coral);background:var(--coral-soft);color:var(--coral)}
+  .opt.show-ok{border-color:var(--green)}
+  .opt:disabled{cursor:default;transform:none}
+  .feedback{text-align:center;margin-top:20px;min-height:64px}
+  .feedback .fb{display:inline-flex;align-items:center;gap:10px;border-radius:14px;padding:12px 22px;font-weight:800;font-size:16px}
+  .fb.ok{background:var(--green-soft);color:var(--green)}
+  .fb.bad{background:var(--coral-soft);color:var(--coral)}
+
+  /* explanation */
+  .slide{background:var(--surface);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);height:430px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;padding:30px}
+  .slide .big{font-size:44px;font-weight:800;letter-spacing:-.02em}
+  .slide .formula{font-size:30px;font-weight:700;color:var(--accent);background:var(--accent-soft);padding:14px 28px;border-radius:16px}
+  .dots-vis{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;max-width:620px}
+  .dgroup{display:grid;grid-template-columns:repeat(5,18px);gap:6px;padding:12px;border-radius:14px;background:var(--blue-soft)}
+  .dgroup.rest{background:var(--amber-soft)}
+  .dgroup i{width:14px;height:14px;border-radius:50%;background:var(--blue)}
+  .dgroup.rest i{background:var(--amber)}
+  .viewonly{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:16px;color:var(--muted);font-weight:700;font-size:13.5px}
+  .viewonly .lock{background:var(--ink);color:#fff;border-radius:999px;padding:7px 16px;display:inline-flex;gap:8px;align-items:center;font-size:12.5px}
+  .slidecount{position:absolute;right:34px;bottom:24px;font-size:13px;color:var(--muted);font-weight:700}
+
+  /* practice */
+  .prac-top{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+  .track-badge{display:inline-flex;align-items:center;gap:8px;background:var(--blue-soft);color:var(--blue);font-weight:800;border-radius:999px;padding:8px 18px;font-size:14px}
+  .prac-prog{margin-left:auto;display:flex;align-items:center;gap:8px;font-weight:700;color:var(--muted);font-size:13px}
+  .task-card{background:var(--surface);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:30px 36px;max-width:760px;margin:0 auto}
+  .task-num{font-size:12px;font-weight:800;color:var(--accent);letter-spacing:.05em;text-transform:uppercase;margin-bottom:10px}
+  .task-text{font-size:21px;font-weight:600;line-height:1.5}
+  .answer-row{display:flex;gap:16px;align-items:flex-end;margin-top:24px;flex-wrap:wrap}
+  .ans-field label{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin-bottom:6px}
+  .ans-field input{width:120px;font-family:inherit;font-size:24px;font-weight:800;text-align:center;padding:12px;border:2.5px solid var(--line);border-radius:14px;outline:none}
+  .ans-field input:focus{border-color:var(--accent)}
+  .ans-field input.ok{border-color:var(--green);background:var(--green-soft)}
+  .ans-field input.bad{border-color:var(--coral);background:var(--coral-soft)}
+  .task-foot{display:flex;align-items:center;gap:12px;margin-top:22px}
+  .help-link{margin-left:auto}
+  .written-banner{display:flex;gap:14px;align-items:center;background:var(--amber-soft);border-radius:16px;padding:16px 20px;margin-top:20px;font-weight:600}
+  .written-banner .ic{font-size:26px}
+
+  /* camera */
+  .cam-stage{background:#101014;border-radius:20px;height:440px;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .cam-frame{position:absolute;inset:36px;border-radius:14px}
+  .cam-frame i{position:absolute;width:46px;height:46px;border:4px solid var(--lime)}
+  .cam-frame i:nth-child(1){top:0;left:0;border-right:none;border-bottom:none;border-radius:12px 0 0 0}
+  .cam-frame i:nth-child(2){top:0;right:0;border-left:none;border-bottom:none;border-radius:0 12px 0 0}
+  .cam-frame i:nth-child(3){bottom:0;left:0;border-right:none;border-top:none;border-radius:0 0 0 12px}
+  .cam-frame i:nth-child(4){bottom:0;right:0;border-left:none;border-top:none;border-radius:0 0 12px 0}
+  .cam-hint{color:#fff;font-weight:700;font-size:16px;background:rgba(0,0,0,.45);padding:10px 22px;border-radius:999px}
+  .notebook{width:62%;height:78%;background:repeating-linear-gradient(#fff,#fff 26px,#dbe4f0 27px);border-radius:6px;box-shadow:0 8px 30px rgba(0,0,0,.5);position:relative;transform:rotate(-1.5deg)}
+  .notebook::before{content:"26 : 6 = 4 (ост. 2)\A 6 × 4 = 24\A 26 − 24 = 2";white-space:pre;position:absolute;top:22px;left:26px;font-family:"Comic Sans MS","Segoe Print",cursive;font-size:19px;color:#2c4a8a;line-height:27px}
+  .cam-actions{display:flex;gap:14px;justify-content:center;margin-top:20px}
+  .shutter{width:64px;height:64px;border-radius:50%;background:#fff;border:5px solid var(--gray);transition:.12s}
+  .shutter:hover{transform:scale(1.06);border-color:var(--accent)}
+
+  /* stuck */
+  .stuck-card{max-width:560px;margin:40px auto 0}
+  .stuck-emoji{font-size:54px;margin-bottom:8px}
+
+  /* reflection */
+  .emoji-row{display:flex;gap:16px;justify-content:center;margin:26px 0 8px;flex-wrap:wrap}
+  .emo{background:var(--surface);border:2.5px solid var(--line);border-radius:20px;padding:18px 20px;width:150px;transition:.12s;display:flex;flex-direction:column;align-items:center;gap:8px}
+  .emo .e{font-size:42px}
+  .emo .l{font-weight:700;font-size:13px;color:var(--muted)}
+  .emo:hover{border-color:var(--accent);transform:translateY(-3px)}
+  .emo.sel{border-color:var(--accent);background:var(--accent-soft)}
+  .emo.sel .l{color:var(--accent)}
+
+  /* finish */
+  .stars-row{display:flex;gap:10px;justify-content:center;font-size:46px;margin:10px 0}
+  .finish-stats{display:flex;gap:14px;justify-content:center;margin:20px 0;flex-wrap:wrap}
+  .fstat{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 24px;min-width:150px;text-align:center}
+  .fstat .v{font-size:26px;font-weight:800}
+  .fstat .v.green{color:var(--green)} .fstat .v.accent{color:var(--accent)}
+  .fstat .l{font-size:12px;color:var(--muted);font-weight:600;margin-top:2px}
+  .sticker-award{width:110px;height:110px;border-radius:50%;background:var(--yellow);display:grid;place-items:center;font-size:54px;margin:6px auto;box-shadow:0 2.3px 4.6px rgba(0,0,0,.3);transform:rotate(-6deg)}
+  .hw-card{display:flex;align-items:center;gap:16px;background:var(--accent-soft);border-radius:18px;padding:18px 24px;max-width:560px;margin:18px auto 0;text-align:left}
+  .hw-card .ic{font-size:34px}
+  .hw-card b{font-size:15.5px}
+  .hw-card .meta{font-size:13px;color:var(--muted);font-weight:600;margin-top:2px}
+
+  /* ===== Phone UI ===== */
+  .p-greet{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+  .p-greet h2{font-size:20px;font-weight:800}
+  .p-greet .sub{font-size:12.5px}
+  .pcard{background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:18px;margin-bottom:14px}
+  .pcard .hd{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .pcard .hd .t{font-weight:800;font-size:15px}
+  .deadline{margin-left:auto;font-size:11.5px;font-weight:700;color:#B9871F;background:var(--amber-soft);padding:4px 10px;border-radius:999px}
+  .pbar{height:10px;border-radius:99px;background:var(--gray-soft);overflow:hidden;margin:10px 0 6px}
+  .pbar i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:.3s}
+  .pbar.green i{background:var(--green)}
+  .pmeta{font-size:12px;color:var(--muted);font-weight:600}
+  .prow{display:flex;gap:10px}
+  .prow .pcard{flex:1;text-align:center;margin-bottom:0}
+  .prow .v{font-size:22px;font-weight:800}
+  .prow .l{font-size:11px;color:var(--muted);font-weight:600}
+  .p-q{font-size:24px;font-weight:800;text-align:center;margin:16px 0}
+  .p-opts{display:grid;gap:10px}
+  .p-opt{background:var(--surface);border:2.5px solid var(--line);border-radius:14px;padding:14px;font-size:17px;font-weight:800;text-align:center;transition:.12s}
+  .p-opt:hover{border-color:var(--accent)}
+  .p-opt.sel-ok{border-color:var(--green);background:var(--green-soft);color:var(--green)}
+  .p-opt.sel-bad{border-color:var(--coral);background:var(--coral-soft);color:var(--coral)}
+  .p-opt.show-ok{border-color:var(--green)}
+  .hw-dots{display:flex;gap:6px;justify-content:center;margin-bottom:12px}
+  .hw-dot{width:22px;height:7px;border-radius:99px;background:var(--line)}
+  .hw-dot.cur{background:var(--accent)} .hw-dot.ok{background:var(--green)} .hw-dot.bad{background:var(--coral)}
+  .review-item{display:flex;gap:10px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--line);font-size:13.5px}
+  .review-item .ic{font-size:18px}
+  .review-item .ok-ans{color:var(--green);font-weight:700}
+
+  /* progress trail */
+  .trail{position:relative;padding:6px 0 6px 26px}
+  .trail::before{content:"";position:absolute;left:9px;top:14px;bottom:14px;width:4px;border-radius:99px;background:var(--line)}
+  .tnode{position:relative;background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:13px 16px;margin-bottom:10px}
+  .tnode::before{content:"";position:absolute;left:-23px;top:50%;transform:translateY(-50%);width:14px;height:14px;border-radius:50%;background:var(--green);border:3px solid var(--bg)}
+  .tnode.cur{border-color:var(--accent);background:var(--accent-soft)}
+  .tnode.cur::before{background:var(--accent);animation:pl 1.4s infinite}
+  .tnode.locked{opacity:.55}
+  .tnode.locked::before{background:var(--gray)}
+  .tnode .nm{font-weight:800;font-size:14px}
+  .tnode .st{font-size:12px;color:var(--muted);font-weight:600;margin-top:2px}
+  .tnode .stars{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:15px;letter-spacing:1px}
+  .stickers-strip{display:flex;gap:10px;flex-wrap:wrap}
+  .stk{width:54px;height:54px;border-radius:50%;background:var(--yellow);display:grid;place-items:center;font-size:26px;box-shadow:0 2.3px 4.6px rgba(0,0,0,.25)}
+  .stk:nth-child(2n){transform:rotate(7deg)} .stk:nth-child(3n){transform:rotate(-8deg)}
+  .stk.empty{background:var(--gray-soft);box-shadow:none;color:var(--gray)}
+
+  /* stub screens */
+  .stub{max-width:620px;margin:50px auto;text-align:center}
+  .stub .e{font-size:60px;margin-bottom:12px}
+  .stub p{color:var(--muted);margin-top:10px;font-size:14.5px;line-height:1.6}
+
+  .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:#fff;font-weight:700;padding:12px 24px;border-radius:999px;transition:.25s;z-index:99;opacity:0}
+  .toast.on{transform:translateX(-50%) translateY(0);opacity:1}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo"><span class="mark"><svg viewBox="0 0 80 92" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 2 H72 V64 H48 L40 88 L32 64 H8 Z" fill="#5800E5"></path><text x="40" y="34" text-anchor="middle" dominant-baseline="central" font-family="Inter, sans-serif" font-weight="700" font-size="44" fill="#fff">A</text></svg></span><span>AI Math · Ученик</span></div>
+    <div class="hdr-ctx">
+      <span class="chip">Айсель Мамедова · 4-А</span>
+      <span class="lesson">Урок 84: Деление с остатком</span>
+      <span>29 мая, чт</span>
+    </div>
+    <div class="hdr-right">
+      <span>Прототип для ревью · экраны по SCREENS_SPEC.md</span>
+      <div class="avatar">АМ</div>
+    </div>
+  </header>
+
+  <aside id="nav"></aside>
+
+  <main>
+    <div class="demo-bar" id="demoBar"></div>
+    <div class="stage">
+      <!-- ============ TABLET ============ -->
+      <div class="tablet" id="devTablet">
+        <div class="cam"></div>
+        <div class="tscreen" id="tscreen"></div>
+      </div>
+      <!-- ============ PHONE ============ -->
+      <div class="phone" id="devPhone" style="display:none">
+        <div class="notch"></div>
+        <div class="pscreen" id="pscreen"></div>
+      </div>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= screens registry ================= */
+const SCREENS=[
+ {id:"s1", group:"В классе · планшет", ic:"⌂", nm:"S1 · Ожидание урока", dev:"tablet"},
+ {id:"s2", ic:"⚡", nm:"S2 · Разминка", dev:"tablet"},
+ {id:"s3", ic:"▶", nm:"S3 · Объяснение", dev:"tablet"},
+ {id:"s4", ic:"✎", nm:"S4 · Практика", dev:"tablet"},
+ {id:"s5", ic:"📷", nm:"S5 · Фото тетради", dev:"tablet"},
+ {id:"s6", ic:"✋", nm:"S6 · «Не получается»", dev:"tablet"},
+ {id:"s7", ic:"☺", nm:"S7 · Рефлексия", dev:"tablet"},
+ {id:"s8", ic:"★", nm:"S8 · Урок завершён", dev:"tablet"},
+ {id:"s9", group:"Дома · мобильный", ic:"⌂", nm:"S9 · Главная", dev:"phone"},
+ {id:"s10", ic:"✎", nm:"S10 · Домашка", dev:"phone"},
+ {id:"s11", ic:"✓", nm:"S11 · Домашка сдана", dev:"phone"},
+ {id:"s12", ic:"⚑", nm:"S12 · Мой прогресс", dev:"phone"},
+ {id:"s13", group:"Скоро", ic:"♺", nm:"S13 · Буферный урок", dev:"tablet", stub:true},
+ {id:"s14", ic:"◎", nm:"S14 · Диагностика", dev:"tablet", stub:true},
+];
+let cur="s1";
+
+/* ================= nav ================= */
+function buildNav(){
+  const el=document.getElementById("nav");
+  el.innerHTML=SCREENS.map(s=>
+    (s.group?`<div class="nav-group">${s.group}</div>`:"")+
+    `<button class="nav-item${s.id===cur?" on":""}" data-s="${s.id}" onclick="go('${s.id}')"><span class="ic">${s.ic}</span><span>${s.nm}</span>${s.stub?'<span class="nav-soon">заглушка</span>':""}</button>`
+  ).join("")+
+  `<div class="nav-spacer"></div><div class="nav-foot">Прототип · мок-данные<br>Урок и класс — те же, что в прототипе учителя</div>`;
+}
+function go(id){
+  cur=id;
+  document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("on",b.dataset.s===id));
+  const scr=SCREENS.find(s=>s.id===id);
+  document.getElementById("devTablet").style.display=scr.dev==="tablet"?"":"none";
+  document.getElementById("devPhone").style.display=scr.dev==="phone"?"":"none";
+  render();
+}
+function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("on");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("on"),2400);}
+
+/* ================= demo bar (teacher-signal simulation) ================= */
+const DEMO={
+ s1:[{l:"▶ Учитель нажал «Начать урок»",f:()=>{toast("Сигнал учителя: урок начался");go('s2')}}],
+ s2:[],
+ s3:[{l:"▶ Учитель перелистнул слайд",f:()=>{st.slide=(st.slide+1)%3;render()}},{l:"▶ Учитель начал практику",f:()=>go('s4')}],
+ s4:[],
+ s5:[],
+ s6:[{l:"▶ Учитель подошёл и помог",f:()=>{toast("Учитель помог разобраться");st.stuck=false;go('s4')}}],
+ s7:[],
+ s8:[{l:"📱 Вечером дома: открыть телефон",f:()=>go('s9')}],
+ s9:[],s10:[],s11:[],s12:[],s13:[],s14:[],
+};
+function demoBar(){
+  const list=DEMO[cur]||[];
+  const note={s1:"Кнопки с пунктиром — симуляция событий вне планшета (действия учителя)",s3:"Слайды листает учитель — у ученика ввод заблокирован"}[cur]||"";
+  document.getElementById("demoBar").innerHTML=
+    `<span class="lbl">Демо</span>`+
+    list.map((d,i)=>`<button class="demo-btn" onclick="DEMO['${cur}'][${i}].f()">${d.l}</button>`).join("")+
+    `<button class="demo-btn ghost" onclick="resetAll()">⟳ Сбросить сценарий</button>`+
+    (note?`<span class="demo-note">${note}</span>`:"");
+}
+
+/* ================= demo state ================= */
+const initState=()=>({
+  wq:0, wdone:[],            // warm-up: index + results
+  slide:0,
+  prac:0, pracOk:0, ansState:null, stuck:false,
+  camStep:0,
+  refl:null, reflSent:false,
+  hq:0, hdone:[], hwFinished:false,
+});
+let st=initState();
+function resetAll(){st=initState();toast("Сценарий сброшен");render();}
+
+/* ================= mock data ================= */
+const WARMUP=[
+ {q:"17 ÷ 5 = ?", opts:["3, остаток 2","2, остаток 7","3, остаток 1","4, остаток 0"], ok:0},
+ {q:"23 ÷ 4 = ?", opts:["4, остаток 7","5, остаток 3","6, остаток 1","5, остаток 2"], ok:1},
+ {q:"31 ÷ 6 = ?", opts:["4, остаток 7","6, остаток 0","5, остаток 1","5, остаток 2"], ok:2},
+];
+const SLIDES=[
+ {t:"Деление с остатком", body:`<div class="formula">17 ÷ 5 = 3 (ост. 2)</div><div class="sub" style="font-size:17px">Иногда разделить поровну не получается —<br>и тогда появляется <b>остаток</b></div>`},
+ {t:"17 конфет по 5 в пакет", body:`<div class="dots-vis">
+    <div class="dgroup"><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="dgroup"><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="dgroup"><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="dgroup rest"><i></i><i></i></div>
+  </div><div class="sub" style="font-size:17px">3 полных пакета и <b style="color:#B9871F">2 конфеты остались</b></div>`},
+ {t:"Главное правило", body:`<div class="formula">остаток &lt; делитель</div><div class="sub" style="font-size:17px">Остаток всегда меньше числа, на которое делим.<br>Если получился больше — можно разделить ещё раз!</div>`},
+];
+const PRACTICE=[
+ {type:"input", text:"У Лейлы 26 конфет. Она раскладывает их в пакеты по 6 конфет. Сколько получится полных пакетов и сколько конфет останется?",
+  fields:[{l:"Пакетов",a:4},{l:"Останется",a:2}]},
+ {type:"input", text:"В коробку помещается 8 машинок. У Тимура 35 машинок. Сколько коробок он заполнит и сколько машинок останется без коробки?",
+  fields:[{l:"Коробок",a:4},{l:"Останется",a:3}]},
+ {type:"written", text:"Реши в тетради: 74 ÷ 9. Запиши решение по шагам — проверь себя умножением."},
+];
+const HOMEWORK=[
+ {q:"39 ÷ 5 = ?", opts:["7, остаток 4","8, остаток 1","7, остаток 5"], ok:0},
+ {q:"25 ÷ 7 = ?", opts:["3, остаток 4","4, остаток 3","3, остаток 5"], ok:0},
+ {q:"50 ÷ 8 = ?", opts:["5, остаток 10","6, остаток 2","7, остаток 6"], ok:1},
+ {q:"19 ÷ 2 = ?", opts:["9, остаток 1","8, остаток 3","9, остаток 0"], ok:0},
+ {q:"44 ÷ 6 = ?", opts:["6, остаток 8","7, остаток 2","8, остаток 4"], ok:1},
+ {q:"61 ÷ 10 = ?", opts:["6, остаток 1","5, остаток 11","6, остаток 0"], ok:0},
+];
+const TOPICS=[
+ {nm:"Умножение на двузначное число", stars:3},
+ {nm:"Площадь прямоугольника", stars:2},
+ {nm:"Уравнения с одним неизвестным", stars:3},
+ {nm:"Скорость, время, расстояние", stars:1, redo:true},
+ {nm:"Деление с остатком", cur:true},
+ {nm:"Деление многозначных чисел", locked:true},
+ {nm:"Дроби: знакомство", locked:true},
+];
+
+/* ================= render ================= */
+function render(){
+  demoBar();
+  const scr=SCREENS.find(s=>s.id===cur);
+  const host=document.getElementById(scr.dev==="tablet"?"tscreen":"pscreen");
+  host.innerHTML=({s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14})[cur]();
+}
+
+const tabletTop=(phase)=>`
+ <div class="t-top">
+   <div class="who"><span class="kid-ava">🦊</span> Айсель</div>
+   <span class="ctx">4-А · Урок 84 · Деление с остатком</span>
+   <div class="right">${phase?`<span class="pill accent">${phase}</span>`:""}<span class="pill stars">⭐ 47</span></div>
+ </div>`;
+
+const phasebar=(n)=>{
+  const names=["Разминка","Объяснение","Практика","Рефлексия"];
+  return `<div class="phasebar"><span class="nm">${names[n-1]}</span><span class="tag">фаза ${n} из 4</span>${[1,2,3,4].map(i=>`<span class="ph ${i<n?"done":i===n?"cur":""}"></span>`).join("")}</div>`;
+};
+
+/* ----- S1 waiting ----- */
+function s1(){return `<div class="t-pad wait-wrap">${tabletTop("")}
+  <div class="wait-hero">
+    <div class="wait-doodle">📐✏️</div>
+    <h1 class="kid">Привет, Айсель!</h1>
+    <div class="bigcard center" style="padding:22px 40px;gap:6px">
+      <div class="sub">Сегодняшний урок</div>
+      <h2 class="kid">Урок 84 · Деление с остатком</h2>
+      <div class="sub">3 задания разминки уже ждут тебя ⚡</div>
+    </div>
+    <div class="pulse"><span class="dot"></span> Урок скоро начнётся — ждём учителя</div>
+  </div></div>`;}
+
+/* ----- S2 warm-up ----- */
+function s2(){
+  const i=st.wq, done=i>=WARMUP.length;
+  const dots=WARMUP.map((_,k)=>`<span class="q-dot ${k===i?"cur":st.wdone[k]===true?"ok":st.wdone[k]===false?"bad":""}"></span>`).join("");
+  if(done){
+    const ok=st.wdone.filter(Boolean).length;
+    return `<div class="t-pad">${tabletTop("Разминка")}${phasebar(1)}
+      <div class="bigcard center" style="margin-top:60px;gap:10px;max-width:640px;margin-left:auto;margin-right:auto">
+        <div style="font-size:52px">${ok===3?"🎉":"💪"}</div>
+        <h2 class="kid">Разминка пройдена: ${ok} из 3</h2>
+        <div class="sub">Ответы уже у учителя на экране. Ждём, когда начнётся объяснение…</div>
+        <button class="btn soft" onclick="go('s3')">Дальше: объяснение →</button>
+      </div></div>`;
+  }
+  const w=WARMUP[i], a=st.ansState;
+  return `<div class="t-pad">${tabletTop("Разминка")}${phasebar(1)}
+    <div class="q-progress">${dots}</div>
+    <div class="question">${w.q}</div>
+    <div class="opts">${w.opts.map((o,k)=>{
+      let cls="opt";
+      if(a!==null&&a!==undefined){ if(k===a) cls+=a===w.ok?" sel-ok":" sel-bad"; if(k===w.ok&&a!==w.ok) cls+=" show-ok"; }
+      return `<button class="${cls}" ${a!=null?"disabled":""} onclick="wAnswer(${k})">${o}</button>`;
+    }).join("")}</div>
+    <div class="feedback">${a!=null?(a===WARMUP[i].ok
+      ?`<span class="fb ok">✓ Верно! Молодец!</span>`
+      :`<span class="fb bad">Не совсем — правильный ответ подсвечен</span>`)
+      :`<span class="sub">Выбери ответ — учитель сразу увидит</span>`}
+      ${a!=null?`<div style="margin-top:14px"><button class="btn primary" onclick="wNext()">Дальше →</button></div>`:""}
+    </div></div>`;
+}
+function wAnswer(k){if(st.ansState!=null)return;st.ansState=k;st.wdone[st.wq]=(k===WARMUP[st.wq].ok);render();}
+function wNext(){st.wq++;st.ansState=null;render();}
+
+/* ----- S3 explanation ----- */
+function s3(){
+  const s=SLIDES[st.slide];
+  return `<div class="t-pad">${tabletTop("Объяснение")}${phasebar(2)}
+    <div class="slide">
+      <div class="big">${s.t}</div>
+      ${s.body}
+    </div>
+    <div class="viewonly"><span class="lock">🔒 Смотрим вместе</span> Экран листает учитель — как на проекторе</div>
+    <div class="slidecount">Слайд ${st.slide+1} из ${SLIDES.length}</div>
+  </div>`;
+}
+
+/* ----- S4 practice ----- */
+function s4(){
+  if(st.stuck) return s6();
+  const i=st.prac;
+  if(i>=PRACTICE.length){
+    return `<div class="t-pad">${tabletTop("Практика")}${phasebar(3)}
+      <div class="bigcard center" style="margin-top:50px;gap:10px;max-width:640px;margin-left:auto;margin-right:auto">
+        <div style="font-size:52px">🚀</div>
+        <h2 class="kid">Все задачи маршрута решены!</h2>
+        <div class="sub">Решено верно: ${st.pracOk} из 2 на планшете + 1 в тетради (проверим к утру)</div>
+        <button class="btn soft" onclick="go('s7')">Дальше: рефлексия →</button>
+      </div></div>`;
+  }
+  const t=PRACTICE[i];
+  const head=`<div class="prac-top">
+      <span class="track-badge">🚀 Твой маршрут: Орбита</span>
+      <span class="prac-prog">Задача ${i+1} из ${PRACTICE.length} · решено верно: ${st.pracOk}</span>
+    </div>`;
+  if(t.type==="written"){
+    return `<div class="t-pad">${tabletTop("Практика")}${phasebar(3)}${head}
+      <div class="task-card">
+        <div class="task-num">Задача ${i+1} · письменная</div>
+        <div class="task-text">${t.text}</div>
+        <div class="written-banner"><span class="ic">📓</span> Реши в тетради, потом сфотографируй страницу — проверим к утру</div>
+        <div class="task-foot">
+          <button class="btn primary" onclick="st.camStep=0;go('s5')">📷 Сфотографировать решение</button>
+          <button class="btn ghost help-link" onclick="st.stuck=true;render()">✋ Не получается</button>
+        </div>
+      </div></div>`;
+  }
+  const a=st.ansState; // null | "ok" | "bad"
+  return `<div class="t-pad">${tabletTop("Практика")}${phasebar(3)}${head}
+    <div class="task-card">
+      <div class="task-num">Задача ${i+1}</div>
+      <div class="task-text">${t.text}</div>
+      <div class="answer-row">
+        ${t.fields.map((f,k)=>`<div class="ans-field"><label>${f.l}</label><input id="pf${k}" inputmode="numeric" maxlength="3" class="${a==="ok"?"ok":a==="bad"?"bad":""}" ${a==="ok"?"disabled":""}></div>`).join("")}
+        ${a==="ok"
+          ?`<button class="btn primary" onclick="pNext()">Дальше →</button>`
+          :`<button class="btn primary" onclick="pCheck()">Проверить</button>`}
+        <button class="btn ghost help-link" onclick="st.stuck=true;render()">✋ Не получается</button>
+      </div>
+      <div class="feedback" style="text-align:left;min-height:40px;margin-top:14px">
+        ${a==="ok"?`<span class="fb ok">✓ Верно! Так держать!</span>`:a==="bad"?`<span class="fb bad">Пока не так. Вспомни: остаток меньше делителя. Попробуй ещё раз!</span>`:""}
+      </div>
+    </div></div>`;
+}
+function pCheck(){
+  const t=PRACTICE[st.prac];
+  const ok=t.fields.every((f,k)=>{const v=document.getElementById("pf"+k).value.trim();return v!==""&&+v===f.a;});
+  if(ok&&st.ansState!=="ok")st.pracOk++;
+  st.ansState=ok?"ok":"bad";
+  const vals=t.fields.map((_,k)=>document.getElementById("pf"+k).value);
+  render();
+  t.fields.forEach((_,k)=>{const el=document.getElementById("pf"+k);if(el)el.value=vals[k];});
+}
+function pNext(){st.prac++;st.ansState=null;render();}
+
+/* ----- S5 camera ----- */
+function s5(){
+  const step=st.camStep;
+  if(step===0) return `<div class="t-pad">${tabletTop("Практика")}
+    <h2 class="kid" style="margin-bottom:14px">📷 Сфотографируй решение из тетради</h2>
+    <div class="cam-stage">
+      <div class="cam-frame"><i></i><i></i><i></i><i></i></div>
+      <div class="cam-hint">Помести страницу в рамку</div>
+    </div>
+    <div class="cam-actions">
+      <button class="btn ghost" onclick="go('s4')">← Назад к задаче</button>
+      <button class="shutter" title="Сделать фото" onclick="st.camStep=1;render()"></button>
+      <span style="width:130px"></span>
+    </div></div>`;
+  if(step===1) return `<div class="t-pad">${tabletTop("Практика")}
+    <h2 class="kid" style="margin-bottom:14px">Хорошо видно?</h2>
+    <div class="cam-stage"><div class="notebook"></div></div>
+    <div class="cam-actions">
+      <button class="btn ghost" onclick="st.camStep=0;render()">↺ Переснять</button>
+      <button class="btn primary big" onclick="st.camStep=2;render()">Отправить ✓</button>
+    </div></div>`;
+  return `<div class="t-pad">${tabletTop("Практика")}
+    <div class="bigcard center" style="margin-top:70px;gap:10px;max-width:620px;margin-left:auto;margin-right:auto">
+      <div style="font-size:54px">🌙</div>
+      <h2 class="kid">Фото отправлено!</h2>
+      <div class="sub">Проверим к утру — учитель увидит каждый шаг твоего решения.<br>А ты пока двигайся дальше!</div>
+      <button class="btn primary" onclick="st.prac=3;st.ansState=null;go('s4')">Продолжить практику →</button>
+    </div></div>`;
+}
+
+/* ----- S6 stuck ----- */
+function s6(){
+  return `<div class="t-pad">${tabletTop("Практика")}${phasebar(3)}
+    <div class="bigcard center stuck-card" style="gap:8px">
+      <div class="stuck-emoji">🙋</div>
+      <h2 class="kid">Учитель уже знает!</h2>
+      <div class="sub">Твоя карточка подсветилась у учителя на экране.<br>Он подойдёт или соберёт мини-группу для разбора.</div>
+      <div style="display:flex;gap:10px;margin-top:14px">
+        <button class="btn primary" onclick="st.stuck=false;go('s4')">Попробую ещё раз 💪</button>
+        <button class="btn ghost" onclick="toast('Ок, подожди учителя — можно порешать прошлую тему')">Подожду учителя</button>
+      </div>
+      <div class="sub" style="font-size:12px;margin-top:10px">Никто из класса не видит, что ты позвал на помощь</div>
+    </div></div>`;
+}
+
+/* ----- S7 reflection ----- */
+function s7(){
+  const EMOJIS=[["😕","Пока трудно"],["🙂","Почти понял"],["😀","Понял!"],["🤩","Могу объяснить другу"]];
+  if(st.reflSent) return `<div class="t-pad">${tabletTop("Рефлексия")}${phasebar(4)}
+    <div class="bigcard center" style="margin-top:60px;gap:10px;max-width:620px;margin-left:auto;margin-right:auto">
+      <div style="font-size:52px">${EMOJIS[st.refl][0]}</div>
+      <h2 class="kid">Спасибо, что поделилась!</h2>
+      <div class="sub">Твой ответ поможет подобрать задания специально для тебя</div>
+      <button class="btn soft" onclick="go('s8')">Завершить урок →</button>
+    </div></div>`;
+  return `<div class="t-pad">${tabletTop("Рефлексия")}${phasebar(4)}
+    <div class="center" style="margin-top:36px">
+      <h1 class="kid" style="font-size:26px">Как ты сегодня понял тему<br>«Деление с остатком»?</h1>
+      <div class="emoji-row">${EMOJIS.map((e,k)=>`<button class="emo ${st.refl===k?"sel":""}" onclick="st.refl=${k};render()"><span class="e">${e[0]}</span><span class="l">${e[1]}</span></button>`).join("")}</div>
+      <div class="sub" style="margin:10px 0 16px">Честный ответ — это здорово: так задания будут точно по силам</div>
+      <button class="btn primary big" ${st.refl==null?"disabled":""} onclick="st.reflSent=true;render()">Отправить</button>
+    </div></div>`;
+}
+
+/* ----- S8 finished ----- */
+function s8(){
+  return `<div class="t-pad">${tabletTop("")}
+    <div class="center" style="margin-top:14px">
+      <div class="stars-row">⭐⭐⭐</div>
+      <h1 class="kid">Урок пройден, Айсель!</h1>
+      <div class="finish-stats">
+        <div class="fstat"><div class="v accent">8</div><div class="l">задач решено</div></div>
+        <div class="fstat"><div class="v green">6</div><div class="l">верно с 1-й попытки</div></div>
+        <div class="fstat"><div class="v">+3 ⭐</div><div class="l">звёзды за урок</div></div>
+      </div>
+      <div class="sticker-award">🦉</div>
+      <div class="sub" style="font-weight:700">Новый стикер: «Мудрая сова деления»!</div>
+      <div class="hw-card">
+        <span class="ic">📱</span>
+        <div><b>Домашка уже в твоём телефоне</b>
+        <div class="meta">6 заданий · Деление с остатком · сдать до завтра, 8:00</div></div>
+      </div>
+    </div></div>`;
+}
+
+/* ================= PHONE ================= */
+function pTop(title){
+  return `<div class="p-greet"><span class="kid-ava">🦊</span><div><h2>${title}</h2><div class="sub">Айсель · 4-А</div></div><span class="pill stars" style="margin-left:auto">⭐ 50</span></div>`;
+}
+
+/* ----- S9 phone home ----- */
+function s9(){
+  const done=st.hwFinished;
+  const solved=st.hdone.length;
+  return `<div class="p-pad">${pTop("Привет, Айсель!")}
+    <div class="pcard">
+      <div class="hd"><span style="font-size:20px">📒</span><span class="t">Домашка · Деление с остатком</span><span class="deadline">до завтра 8:00</span></div>
+      <div class="pbar ${done?"green":""}"><i style="width:${done?100:Math.round(solved/6*100)}%"></i></div>
+      <div class="pmeta">${done?"Сдано! Результат: 5 из 6 ✓":`Решено ${solved} из 6 заданий`}</div>
+      <div style="margin-top:12px">${done
+        ?`<button class="btn soft" style="width:100%" onclick="go('s11')">Посмотреть результат</button>`
+        :`<button class="btn primary" style="width:100%" onclick="go('s10')">${solved?"Продолжить":"Начать"} →</button>`}</div>
+    </div>
+    <div class="prow" style="margin-bottom:14px">
+      <div class="pcard"><div class="v">🔥 4</div><div class="l">дня подряд</div></div>
+      <div class="pcard"><div class="v">⭐ 50</div><div class="l">звёзд всего</div></div>
+      <div class="pcard"><div class="v">🏅 12</div><div class="l">стикеров</div></div>
+    </div>
+    <div class="pcard" style="cursor:pointer" onclick="go('s12')">
+      <div class="hd"><span style="font-size:20px">🗺️</span><span class="t">Мой прогресс</span><span style="margin-left:auto;color:var(--muted)">›</span></div>
+      <div class="pmeta">Сейчас: Деление с остатком · 4 темы со звёздами подряд!</div>
+    </div></div>`;
+}
+
+/* ----- S10 homework ----- */
+function s10(){
+  const i=st.hq;
+  if(i>=HOMEWORK.length){st.hwFinished=true;return s11();}
+  const h=HOMEWORK[i], a=st.ansState;
+  const dots=HOMEWORK.map((_,k)=>`<span class="hw-dot ${k===i?"cur":st.hdone[k]===true?"ok":st.hdone[k]===false?"bad":""}"></span>`).join("");
+  return `<div class="p-pad">${pTop("Домашка")}
+    <div class="hw-dots">${dots}</div>
+    <div class="pmeta" style="text-align:center">Задание ${i+1} из 6</div>
+    <div class="p-q">${h.q}</div>
+    <div class="p-opts">${h.opts.map((o,k)=>{
+      let cls="p-opt";
+      if(a!=null){ if(k===a) cls+=a===h.ok?" sel-ok":" sel-bad"; if(k===h.ok&&a!==h.ok) cls+=" show-ok"; }
+      return `<button class="${cls}" ${a!=null?"disabled":""} onclick="hAnswer(${k})">${o}</button>`;
+    }).join("")}</div>
+    <div class="feedback">${a!=null?(a===h.ok
+      ?`<span class="fb ok">✓ Верно!</span>`
+      :`<span class="fb bad">Правильный ответ подсвечен</span>`)
+      :`<span class="sub">Можно прерваться — прогресс сохранится</span>`}
+      ${a!=null?`<div style="margin-top:12px"><button class="btn primary" style="width:100%" onclick="hNext()">${i===5?"Завершить":"Дальше"} →</button></div>`:""}
+    </div></div>`;
+}
+function hAnswer(k){if(st.ansState!=null)return;st.ansState=k;st.hdone[st.hq]=(k===HOMEWORK[st.hq].ok);render();}
+function hNext(){st.hq++;st.ansState=null;render();}
+
+/* ----- S11 hw done ----- */
+function s11(){
+  st.hwFinished=true;
+  const ok=st.hdone.length?st.hdone.filter(Boolean).length:5;
+  const wrongIdx=st.hdone.length?st.hdone.findIndex(v=>v===false):2;
+  return `<div class="p-pad">${pTop("Домашка сдана!")}
+    <div class="pcard center" style="gap:6px;padding:24px">
+      <div style="font-size:48px">🎉</div>
+      <h2 class="kid" style="font-size:20px">Решено верно: ${ok} из 6</h2>
+      <div class="sub">Учитель утром увидит твой результат</div>
+      <div class="sticker-award" style="width:84px;height:84px;font-size:40px">🐢</div>
+      <div class="sub" style="font-weight:700">Стикер: «Черепаха-трудяга»</div>
+    </div>
+    ${ok<6?`<div class="pcard">
+      <div class="hd"><span class="t">Разбор ошибки</span></div>
+      <div class="review-item" style="border-top:none">
+        <span class="ic">✗</span>
+        <div><b>${HOMEWORK[wrongIdx>=0?wrongIdx:2].q}</b><br>
+        Правильно: <span class="ok-ans">${HOMEWORK[wrongIdx>=0?wrongIdx:2].opts[HOMEWORK[wrongIdx>=0?wrongIdx:2].ok]}</span><br>
+        <span class="sub">Подсказка: проверь себя умножением — и помни, что остаток меньше делителя</span></div>
+      </div>
+    </div>`:""}
+    <button class="btn soft" style="width:100%" onclick="go('s9')">На главную</button></div>`;
+}
+
+/* ----- S12 progress ----- */
+function s12(){
+  return `<div class="p-pad">${pTop("Мой прогресс")}
+    <div class="pcard">
+      <div class="hd"><span class="t">🗺️ Карта тем · 4 класс</span></div>
+      <div class="trail">${TOPICS.map(t=>`
+        <div class="tnode ${t.cur?"cur":""} ${t.locked?"locked":""}">
+          <div class="nm">${t.nm}</div>
+          <div class="st">${t.cur?"Учим сейчас":t.locked?"Откроется дальше":t.redo?"Стоит повторить":"Пройдено"}</div>
+          ${t.stars?`<span class="stars">${"⭐".repeat(t.stars)}</span>`:t.cur?`<span class="stars">✏️</span>`:t.locked?`<span class="stars">🔒</span>`:""}
+        </div>`).join("")}</div>
+    </div>
+    <div class="pcard">
+      <div class="hd"><span class="t">🏅 Мои стикеры</span><span style="margin-left:auto" class="pmeta">12 из 30</span></div>
+      <div class="stickers-strip">
+        <span class="stk">🦉</span><span class="stk">🐢</span><span class="stk">🚀</span><span class="stk">🧮</span><span class="stk">🦊</span><span class="stk">🌟</span><span class="stk empty">?</span><span class="stk empty">?</span>
+      </div>
+    </div></div>`;
+}
+
+/* ----- stubs ----- */
+function s13(){return `<div class="t-pad">${tabletTop("")}
+  <div class="stub bigcard">
+    <div class="e">🧭</div>
+    <h2 class="kid">Твой особенный урок</h2>
+    <p>Раз в две недели — урок-приключение, собранный специально для тебя.<br>
+    Система подберёт задания по твоей карте тем: закрыть пробелы, закрепить базу или взять задачи посложнее.</p>
+    <p style="font-size:12.5px">Заглушка · буферные уроки (треки A/B/C) — вне скоупа v1</p>
+  </div></div>`;}
+function s14(){return `<div class="t-pad">${tabletTop("")}
+  <div class="stub bigcard">
+    <div class="e">🎯</div>
+    <h2 class="kid">Проверка знаний</h2>
+    <p>3 раза в год — особый режим: без подсказок и без проверки ответов до самого конца.<br>
+    Результат увидишь, когда все закончат.</p>
+    <p style="font-size:12.5px">Заглушка · диагностика (симуляция мониторинга) — вне скоупа v1</p>
+  </div></div>`;}
+
+/* ================= init ================= */
+buildNav();render();
+</script>
+</body>
+</html>
