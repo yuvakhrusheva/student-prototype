@@ -246,6 +246,10 @@
   .tnode.cur::before{background:var(--accent);animation:pl 1.4s infinite}
   .tnode.locked{opacity:.55}
   .tnode.locked::before{background:var(--gray)}
+  .tnode.missed{border-color:var(--amber)}
+  .tnode.missed::before{background:var(--amber)}
+  .tnode.missed .st{color:#B9871F}
+  .tnode .dim-ic{opacity:.5;font-size:15px}
   .tnode .nm{font-weight:800;font-size:14px}
   .tnode .st{font-size:12px;color:var(--muted);font-weight:600;margin-top:2px}
   .tnode .stars{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:15px;letter-spacing:1px}
@@ -450,19 +454,14 @@ const FEEDBACK={
   good:"Уверенно находишь, сколько выходит целых групп и какой получается остаток.",
   grow:"Стоит ещё потренировать проверку умножением — поэтому в домашке есть похожие задачи.",
 };
-const HW_HISTORY=[
- {nm:"Умножение на двузначное число", date:"Урок 83 · 28 мая", stars:3},
- {nm:"Площадь прямоугольника", date:"Урок 82 · 26 мая", stars:2},
- {nm:"Уравнения с одним неизвестным", date:"Урок 81 · 21 мая", stars:3},
- {nm:"Скорость, время, расстояние", date:"Урок 79 · 12 мая · была на больничном", missed:true},
-];
 const starsFor=(ok,total)=>{const r=ok/total;return r>=0.8?3:r>=0.5?2:1;};
 const starsHTML=(n,big)=>`<span class="${big?"big-stars":"hw-stars"}">${"★".repeat(n)}<span class="dim">${"★".repeat(3-n)}</span></span>`;
+// «Мои уроки»: каждый пройденный урок несёт звёзды за свою домашку; пропущенные — с причиной
 const TOPICS=[
- {nm:"Умножение на двузначное число"},
- {nm:"Площадь прямоугольника"},
- {nm:"Уравнения с одним неизвестным"},
- {nm:"Скорость, время, расстояние", redo:true},
+ {nm:"Умножение на двузначное число", stars:3},
+ {nm:"Площадь прямоугольника", stars:2},
+ {nm:"Уравнения с одним неизвестным", stars:3},
+ {nm:"Скорость, время, расстояние", missed:true, why:"Урок 79 · 12 мая · была на больничном"},
  {nm:"Деление с остатком", cur:true},
  {nm:"Деление многозначных чисел", locked:true},
  {nm:"Дроби: знакомство", locked:true},
@@ -779,23 +778,23 @@ function s11(){
 function s12(){
   return `<div class="p-pad">${pTop("Мой прогресс")}
     <div class="pcard">
-      <div class="hd"><span class="t">🗺️ Карта тем · 4 класс</span></div>
+      <div class="hd"><span class="t">📚 Мои уроки</span><span style="margin-left:auto" class="pmeta">★ — за домашку</span></div>
       <div class="trail">${TOPICS.map(t=>`
-        <div class="tnode ${t.cur?"cur":""} ${t.locked?"locked":""}">
+        <div class="tnode ${t.cur?"cur":""} ${t.locked?"locked":""} ${t.missed?"missed":""}">
           <div class="nm">${t.nm}</div>
-          <div class="st">${t.cur?"Учим сейчас":t.locked?"Откроется дальше":t.redo?"Стоит повторить":"Пройдено"}</div>
-          <span class="stars">${t.cur?"✏️":t.locked?"🔒":t.redo?"↺":"✓"}</span>
+          <div class="st">${t.cur?"Учим сейчас":t.locked?"Откроется дальше":t.missed?"Домашка не сдана":"Пройдено"}</div>
+          <span class="stars">${t.cur?"✏️":t.locked?"🔒":t.missed?'<span class="dim-ic">📥</span>':starsHTML(t.stars)}</span>
         </div>`).join("")}</div>
     </div>
     <div class="pcard">
-      <div class="hd"><span class="t">📒 Мои домашки</span><span style="margin-left:auto" class="pmeta">7 из 8 в срок</span></div>
-      ${HW_HISTORY.map(h=>`
-        <div class="hwlist-item">
-          <div><div class="nm">${h.nm}</div><div class="why">${h.date}</div></div>
-          <div class="right">${h.missed
-            ?`<button class="btn soft" onclick="toast('Откроем задания урока 79 — без спешки, это не на оценку')">Догнать</button>`
-            :starsHTML(h.stars)}</div>
-        </div>`).join("")}
+      <div class="hd"><span style="font-size:20px">📥</span><span class="t">Пропущенные домашки</span></div>
+      ${TOPICS.filter(t=>t.missed).length
+        ?TOPICS.filter(t=>t.missed).map(t=>`
+          <div class="hwlist-item">
+            <div><div class="nm">${t.nm}</div><div class="why">${t.why}</div></div>
+            <button class="btn soft" onclick="toast('Откроем задания урока 79 — без спешки, это не на оценку')">Догнать</button>
+          </div>`).join("")
+        :`<div class="pmeta" style="padding:6px 0">Пропущенных домашек нет — молодец! 🎉</div>`}
     </div></div>`;
 }
 
