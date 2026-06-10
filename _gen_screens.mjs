@@ -13,7 +13,8 @@ const SHOTS = [
   // ---- Планшет (в классе) ----
   ['01-waiting',          'tablet', `resetAll();go('s1')`],
   ['02-warmup',           'tablet', `resetAll();go('s2')`],
-  ['03-warmup-feedback',  'tablet', `resetAll();go('s2');wAnswer(0)`],
+  ['02b-warmup-sent',     'tablet', `resetAll();go('s2');wAnswer(0)`],
+  ['03-warmup-feedback',  'tablet', `resetAll();go('s2');wAnswer(0);st.wReveal=true;render()`],
   ['04-explanation',      'tablet', `resetAll();go('s3')`],
   ['05-practice',         'tablet', `resetAll();st.prac=0;go('s4')`],
   ['06-practice-written', 'tablet', `resetAll();st.prac=2;go('s4')`],

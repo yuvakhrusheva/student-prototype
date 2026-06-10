@@ -125,6 +125,7 @@
   .opts{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:640px;margin:0 auto}
   .opt{background:var(--surface);border:2.5px solid var(--line);border-radius:18px;padding:20px;font-size:20px;font-weight:800;transition:.12s;text-align:center}
   .opt:hover{border-color:var(--accent);transform:translateY(-2px)}
+  .opt.sel{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
   .opt.sel-ok{border-color:var(--green);background:var(--green-soft);color:var(--green)}
   .opt.sel-bad{border-color:var(--coral);background:var(--coral-soft);color:var(--coral)}
   .opt.show-ok{border-color:var(--green)}
@@ -387,7 +388,7 @@ function toast(m){const t=document.getElementById("toast");t.textContent=m;t.cla
 /* ================= demo bar (teacher-signal simulation) ================= */
 const DEMO={
  s1:[{l:"▶ Учитель нажал «Начать урок»",f:()=>{toast("Сигнал учителя: урок начался");go('s2')}}],
- s2:[{l:"▶ Учитель начал объяснение",f:()=>go('s3')}],
+ s2:[{l:"▶ Учитель показал разбор ответа",f:()=>{if(st.ansState==null){toast("Сначала выбери ответ на планшете");return;}st.wReveal=true;render()}},{l:"▶ Учитель начал объяснение",f:()=>go('s3')}],
  s3:[{l:"▶ Учитель перелистнул слайд",f:()=>{st.slide=(st.slide+1)%3;render()}},{l:"▶ Учитель начал практику",f:()=>go('s4')}],
  s4:[{l:"▶ Учитель запустил рефлексию",f:()=>go('s7')}],
  s5:[],
@@ -398,7 +399,7 @@ const DEMO={
 };
 function demoBar(){
   const list=DEMO[cur]||[];
-  const note={s1:"Кнопки с пунктиром — симуляция событий вне планшета (действия учителя)",s3:"Слайды листает учитель — у ученика ввод заблокирован"}[cur]||"";
+  const note={s1:"Кнопки с пунктиром — симуляция событий вне планшета (действия учителя)",s2:"Верно/неверно появляется по сигналу учителя, а не сразу после ответа",s3:"Слайды листает учитель — у ученика ввод заблокирован"}[cur]||"";
   document.getElementById("demoBar").innerHTML=
     `<span class="lbl">Демо</span>`+
     list.map((d,i)=>`<button class="demo-btn" onclick="DEMO['${cur}'][${i}].f()">${d.l}</button>`).join("")+
@@ -408,7 +409,7 @@ function demoBar(){
 
 /* ================= demo state ================= */
 const initState=()=>({
-  wq:0, wdone:[],            // warm-up: index + results
+  wq:0, wdone:[], wReveal:false, // warm-up: index + results; разбор открывается по сигналу учителя
   slide:0,
   prac:0, pracOk:0, ansState:null, stuck:false,
   camStep:0,
@@ -516,24 +517,30 @@ function s2(){
         <div class="pulse" style="margin-top:8px"><span class="dot"></span> Ждём, когда учитель начнёт объяснение</div>
       </div></div>`;
   }
-  const w=WARMUP[i], a=st.ansState;
+  const w=WARMUP[i], a=st.ansState, rev=st.wReveal;
+  // верный/неверный показываем только после сигнала учителя (rev), не сразу после ответа
   return `<div class="t-pad">${tabletTop("Разминка")}${phasebar(1)}
     <div class="q-progress">${dots}</div>
     <div class="question">${w.q}</div>
     <div class="opts">${w.opts.map((o,k)=>{
       let cls="opt";
-      if(a!==null&&a!==undefined){ if(k===a) cls+=a===w.ok?" sel-ok":" sel-bad"; if(k===w.ok&&a!==w.ok) cls+=" show-ok"; }
+      if(a!==null&&a!==undefined){
+        if(rev){ if(k===a) cls+=a===w.ok?" sel-ok":" sel-bad"; if(k===w.ok&&a!==w.ok) cls+=" show-ok"; }
+        else if(k===a) cls+=" sel";
+      }
       return `<button class="${cls}" ${a!=null?"disabled":""} onclick="wAnswer(${k})">${o}</button>`;
     }).join("")}</div>
-    <div class="feedback">${a!=null?(a===WARMUP[i].ok
-      ?`<span class="fb ok">✓ Верно! Молодец!</span>`
-      :`<span class="fb bad">Не совсем — правильный ответ подсвечен</span>`)
+    <div class="feedback">${a!=null?(rev
+      ?(a===w.ok
+        ?`<span class="fb ok">✓ Верно! Молодец!</span>`
+        :`<span class="fb bad">Не совсем — правильный ответ подсвечен</span>`)
+      :`<span class="pulse"><span class="dot"></span> Ответ отправлен учителю — ждём разбор на экране</span>`)
       :`<span class="sub">Выбери ответ — учитель сразу увидит</span>`}
-      ${a!=null?`<div style="margin-top:14px"><button class="btn primary" onclick="wNext()">Дальше →</button></div>`:""}
+      ${a!=null&&rev?`<div style="margin-top:14px"><button class="btn primary" onclick="wNext()">Дальше →</button></div>`:""}
     </div></div>`;
 }
 function wAnswer(k){if(st.ansState!=null)return;st.ansState=k;st.wdone[st.wq]=(k===WARMUP[st.wq].ok);render();}
-function wNext(){st.wq++;st.ansState=null;render();}
+function wNext(){st.wq++;st.ansState=null;st.wReveal=false;render();}
 
 /* ----- S3 explanation ----- */
 function s3(){
