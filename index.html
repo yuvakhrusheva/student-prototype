@@ -272,6 +272,32 @@
 
   .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:#fff;font-weight:700;padding:12px 24px;border-radius:999px;transition:.25s;z-index:99;opacity:0}
   .toast.on{transform:translateX(-50%) translateY(0);opacity:1}
+
+  /* warm-up / explanation: class answer distribution on student tablet */
+  .wdist{margin-top:18px;display:flex;flex-direction:column;gap:8px;max-width:560px;margin-left:auto;margin-right:auto;width:100%}
+  .wdist-cap{font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;text-align:left}
+  .wdist-row{display:flex;align-items:center;gap:10px;font-size:14px}
+  .wdist-lbl{flex:0 0 44%;text-align:left;font-weight:600;color:var(--muted)}
+  .wdist-bar{flex:1;height:14px;background:var(--gray-soft);border-radius:999px;overflow:hidden}
+  .wdist-bar i{display:block;height:100%;background:var(--gray);border-radius:999px}
+  .wdist-n{flex:0 0 28px;text-align:right;font-weight:800;font-variant-numeric:tabular-nums;color:var(--muted)}
+  .wdist-row.correct .wdist-lbl{color:var(--green)} .wdist-row.correct .wdist-bar i{background:var(--green)} .wdist-row.correct .wdist-n{color:var(--green)}
+  .wdist-row.mine .wdist-lbl{color:var(--accent);font-weight:800} .wdist-row.mine .wdist-bar i{background:var(--accent)}
+  .wdist-row.correct.mine .wdist-bar i{background:var(--green)}
+
+  /* ===== Development-phase switcher (Фаза 1 / Фаза 2 / Финал) ===== */
+  .phase-switch{display:flex;align-items:center;gap:8px}
+  .phase-switch .ps-lbl{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+  .phase-seg{display:flex;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:3px}
+  .phase-seg button{font-family:inherit;cursor:pointer;border:none;background:none;padding:6px 13px;border-radius:999px;font-weight:700;font-size:12px;color:var(--muted);white-space:nowrap}
+  .phase-seg button.on{background:var(--accent);color:#fff;box-shadow:0 1px 4px rgba(88,0,229,.3)}
+  /* Phase gating (see teacher prototype for the same rules) */
+  body[data-phase="1"] [data-phase="2"],
+  body[data-phase="1"] [data-phase="3"],
+  body[data-phase="2"] [data-phase="3"]{display:none !important}
+  body[data-phase="2"] [data-phase-max="1"],
+  body[data-phase="3"] [data-phase-max="1"],
+  body[data-phase="3"] [data-phase-max="2"]{display:none !important}
 </style>
 </head>
 <body>
@@ -284,7 +310,14 @@
       <span>29 мая, чт</span>
     </div>
     <div class="hdr-right">
-      <span>Прототип для ревью · экраны по SCREENS_SPEC.md</span>
+      <div class="phase-switch">
+        <span class="ps-lbl">Этап</span>
+        <div class="phase-seg">
+          <button data-pl="1" onclick="setPhaseLvl(1)">Фаза 1</button>
+          <button data-pl="2" onclick="setPhaseLvl(2)">Фаза 2</button>
+          <button data-pl="3" class="on" onclick="setPhaseLvl(3)">Финал</button>
+        </div>
+      </div>
       <div class="avatar">АМ</div>
     </div>
   </header>
@@ -312,30 +345,32 @@
 <script>
 /* ================= screens registry ================= */
 const SCREENS=[
- {id:"s1", group:"В классе · планшет", ic:"⌂", nm:"S1 · Ожидание урока", dev:"tablet"},
- {id:"s2", ic:"⚡", nm:"S2 · Разминка", dev:"tablet"},
- {id:"s3", ic:"▶", nm:"S3 · Объяснение", dev:"tablet"},
- {id:"s4", ic:"✎", nm:"S4 · Практика", dev:"tablet"},
- {id:"s5", ic:"📷", nm:"S5 · Фото тетради", dev:"tablet"},
- {id:"s6", ic:"✋", nm:"S6 · «Не получается»", dev:"tablet"},
- {id:"s7", ic:"☺", nm:"S7 · Рефлексия", dev:"tablet"},
- {id:"s8", ic:"★", nm:"S8 · Урок завершён", dev:"tablet"},
- {id:"s9", group:"Дома · мобильный", ic:"⌂", nm:"S9 · Главная", dev:"phone"},
- {id:"s10", ic:"✎", nm:"S10 · Домашка", dev:"phone"},
- {id:"s11", ic:"✓", nm:"S11 · Домашка сдана", dev:"phone"},
- {id:"s12", ic:"⚑", nm:"S12 · Мой прогресс", dev:"phone"},
- {id:"s13", group:"Скоро", ic:"♺", nm:"S13 · Буферный урок", dev:"tablet", stub:true},
- {id:"s14", ic:"◎", nm:"S14 · Диагностика", dev:"tablet", stub:true},
+ {id:"s1", group:"В классе · планшет", ic:"⌂", nm:"S1 · Ожидание урока", dev:"tablet", phase:1},
+ {id:"s2", ic:"⚡", nm:"S2 · Разминка", dev:"tablet", phase:1},
+ {id:"s3", ic:"▶", nm:"S3 · Объяснение", dev:"tablet", phase:1},
+ {id:"s4", ic:"✎", nm:"S4 · Практика", dev:"tablet", phase:1},
+ {id:"s5", ic:"📷", nm:"S5 · Фото тетради", dev:"tablet", phase:2},
+ {id:"s6", ic:"✋", nm:"S6 · «Не получается»", dev:"tablet", phase:1},
+ {id:"s7", ic:"☺", nm:"S7 · Рефлексия", dev:"tablet", phase:1},
+ {id:"s8", ic:"★", nm:"S8 · Урок завершён", dev:"tablet", phase:1},
+ {id:"s9", group:"Дома · мобильный", ic:"⌂", nm:"S9 · Главная", dev:"phone", phase:1},
+ {id:"s10", ic:"✎", nm:"S10 · Домашка", dev:"phone", phase:1},
+ {id:"s11", ic:"✓", nm:"S11 · Домашка сдана", dev:"phone", phase:1},
+ {id:"s12", ic:"⚑", nm:"S12 · Мой прогресс", dev:"phone", phase:1},
+ {id:"s13", group:"Скоро", ic:"♺", nm:"S13 · Буферный урок", dev:"tablet", stub:true, phase:2},
+ {id:"s14", ic:"◎", nm:"S14 · Диагностика", dev:"tablet", stub:true, phase:2},
 ];
+let phaseLvl=3;
 let cur="s1";
 
 /* ================= nav ================= */
 function buildNav(){
   const el=document.getElementById("nav");
-  el.innerHTML=SCREENS.map(s=>
-    (s.group?`<div class="nav-group">${s.group}</div>`:"")+
-    `<button class="nav-item${s.id===cur?" on":""}" data-s="${s.id}" onclick="go('${s.id}')"><span class="ic">${s.ic}</span><span>${s.nm}</span>${s.stub?'<span class="nav-soon">заглушка</span>':""}</button>`
-  ).join("")+
+  el.innerHTML=SCREENS.map(s=>{
+    const ph=s.phase>1?` data-phase="${s.phase}"`:"";
+    return (s.group?`<div class="nav-group"${ph}>${s.group}</div>`:"")+
+    `<button class="nav-item${s.id===cur?" on":""}"${ph} data-s="${s.id}" onclick="go('${s.id}')"><span class="ic">${s.ic}</span><span>${s.nm}</span>${s.stub?'<span class="nav-soon">заглушка</span>':""}</button>`;
+  }).join("")+
   `<div class="nav-spacer"></div><div class="nav-foot">Прототип · мок-данные<br>Урок и класс — те же, что в прототипе учителя</div>`;
 }
 function go(id){
@@ -344,6 +379,16 @@ function go(id){
   const scr=SCREENS.find(s=>s.id===id);
   document.getElementById("devTablet").style.display=scr.dev==="tablet"?"":"none";
   document.getElementById("devPhone").style.display=scr.dev==="phone"?"":"none";
+  render();
+}
+/* ---------- Development-phase switcher (Фаза 1 / Фаза 2 / Финал) ---------- */
+function setPhaseLvl(n){
+  phaseLvl=n;
+  document.body.dataset.phase=n;
+  document.querySelectorAll(".phase-seg button").forEach(b=>b.classList.toggle("on",+b.dataset.pl===n));
+  // если текущий экран ещё не существует в этой фазе — уводим на первый доступный
+  const scr=SCREENS.find(s=>s.id===cur);
+  if(scr && (scr.phase||1)>n){ go(SCREENS.find(s=>(s.phase||1)<=n).id); return; }
   render();
 }
 
@@ -388,8 +433,13 @@ function toast(m){const t=document.getElementById("toast");t.textContent=m;t.cla
 /* ================= demo bar (teacher-signal simulation) ================= */
 const DEMO={
  s1:[{l:"▶ Учитель нажал «Начать урок»",f:()=>{toast("Сигнал учителя: урок начался");go('s2')}}],
- s2:[{l:"▶ Учитель показал разбор ответа",f:()=>{if(st.ansState==null){toast("Сначала выбери ответ на планшете");return;}st.wReveal=true;render()}},{l:"▶ Учитель начал объяснение",f:()=>go('s3')}],
- s3:[{l:"▶ Учитель перелистнул слайд",f:()=>{st.slide=(st.slide+1)%3;render()}},{l:"▶ Учитель начал практику",f:()=>go('s4')}],
+ s2:[{l:"▶ Учитель: «Показать ответы»",f:()=>{if(st.ansState==null){toast("Сначала выбери ответ на планшете");return;}st.wReveal=true;render()}},{l:"▶ Учитель начал объяснение",f:()=>go('s3')}],
+ s3:[
+   {l:"▶ Учитель перелистнул слайд",f:()=>{st.slide=(st.slide+1)%3;render()}},
+   {l:"▶ Учитель открыл задание для решения",f:()=>{const n=st.exTask==null?0:st.exTask+1;if(n>=EXTASK.length){toast("Все задания этапа открыты");return;}st.exTask=n;st.exAns=null;st.exReveal=false;render()}},
+   {l:"▶ Учитель: «Показать ответы»",f:()=>{if(st.exTask==null){toast("Учитель ещё не открыл задание");return;}if(st.exAns==null){toast("Сначала выбери ответ");return;}st.exReveal=true;render()}},
+   {l:"▶ Учитель начал практику",f:()=>go('s4')}
+ ],
  s4:[{l:"▶ Учитель запустил рефлексию",f:()=>go('s7')}],
  s5:[],
  s6:[{l:"▶ Учитель подошёл и помог",f:()=>{toast("Учитель помог разобраться");st.stuck=false;go('s4')}}],
@@ -399,7 +449,7 @@ const DEMO={
 };
 function demoBar(){
   const list=DEMO[cur]||[];
-  const note={s1:"Кнопки с пунктиром — симуляция событий вне планшета (действия учителя)",s2:"Верно/неверно появляется по сигналу учителя, а не сразу после ответа",s3:"Слайды листает учитель — у ученика ввод заблокирован"}[cur]||"";
+  const note={s1:"Кнопки с пунктиром — симуляция событий вне планшета (действия учителя)",s2:"Распределение по классу появляется по сигналу учителя «Показать ответы»",s3:"Презентация — на доске; учитель открывает фронтальные задания на планшет по одному"}[cur]||"";
   document.getElementById("demoBar").innerHTML=
     `<span class="lbl">Демо</span>`+
     list.map((d,i)=>`<button class="demo-btn" onclick="DEMO['${cur}'][${i}].f()">${d.l}</button>`).join("")+
@@ -411,7 +461,8 @@ function demoBar(){
 const initState=()=>({
   wq:0, wdone:[], wReveal:false, // warm-up: index + results; разбор открывается по сигналу учителя
   slide:0,
-  prac:0, pracOk:0, ansState:null, stuck:false,
+  exTask:null, exAns:null, exReveal:false,
+  prac:0, pracOk:0, ansState:null, stuck:false, wrongTries:0,
   camStep:0,
   refl:null, reflSent:false,
   hq:0, hdone:[], hwFinished:false,
@@ -421,9 +472,9 @@ function resetAll(){st=initState();toast("Сценарий сброшен");rend
 
 /* ================= mock data ================= */
 const WARMUP=[
- {q:"17 ÷ 5 = ?", opts:["3, остаток 2","2, остаток 7","3, остаток 1","4, остаток 0"], ok:0},
- {q:"23 ÷ 4 = ?", opts:["4, остаток 7","5, остаток 3","6, остаток 1","5, остаток 2"], ok:1},
- {q:"31 ÷ 6 = ?", opts:["4, остаток 7","6, остаток 0","5, остаток 1","5, остаток 2"], ok:2},
+ {q:"17 ÷ 5 = ?", opts:["3, остаток 2","2, остаток 7","3, остаток 1","4, остаток 0"], ok:0, dist:[19,4,5,2]},
+ {q:"23 ÷ 4 = ?", opts:["4, остаток 7","5, остаток 3","6, остаток 1","5, остаток 2"], ok:1, dist:[3,21,4,2]},
+ {q:"31 ÷ 6 = ?", opts:["4, остаток 7","6, остаток 0","5, остаток 1","5, остаток 2"], ok:2, dist:[4,2,20,4]},
 ];
 const SLIDES=[
  {t:"Деление с остатком", body:`<div class="formula">17 ÷ 5 = 3 (ост. 2)</div><div class="sub" style="font-size:17px">Иногда разделить поровну не получается —<br>и тогда появляется <b>остаток</b></div>`},
@@ -434,6 +485,11 @@ const SLIDES=[
     <div class="dgroup rest"><i></i><i></i></div>
   </div><div class="sub" style="font-size:17px">3 полных пакета и <b style="color:#B9871F">2 конфеты остались</b></div>`},
  {t:"Главное правило", body:`<div class="formula">остаток &lt; делитель</div><div class="sub" style="font-size:17px">Остаток всегда меньше числа, на которое делим.<br>Если получился больше — можно разделить ещё раз!</div>`},
+];
+// Фронтальные задания этапа объяснения — учитель открывает их по одному
+const EXTASK=[
+ {q:"28 ÷ 6 = ?", opts:["4, остаток 4","5, остаток 2","4, остаток 2"], ok:0, dist:[18,5,7]},
+ {q:"Может ли остаток при делении на 6 быть равен 6?", opts:["да","нет"], ok:1, dist:[6,24]},
 ];
 const PRACTICE=[
  {type:"input", text:"У Лейлы 26 конфет. Она раскладывает их в пакеты по 6 конфет. Сколько получится полных пакетов и сколько конфет останется?",
@@ -513,7 +569,6 @@ function s2(){
       <div class="bigcard center" style="margin-top:60px;gap:10px;max-width:640px;margin-left:auto;margin-right:auto">
         <div style="font-size:52px">${ok===3?"🎉":"💪"}</div>
         <h2 class="kid">Разминка пройдена: ${ok} из 3</h2>
-        <div class="sub">Ответы уже у учителя на экране</div>
         <div class="pulse" style="margin-top:8px"><span class="dot"></span> Ждём, когда учитель начнёт объяснение</div>
       </div></div>`;
   }
@@ -530,6 +585,7 @@ function s2(){
       }
       return `<button class="${cls}" ${a!=null?"disabled":""} onclick="wAnswer(${k})">${o}</button>`;
     }).join("")}</div>
+    ${rev?distHTML(w,a):""}
     <div class="feedback">${a!=null?(rev
       ?(a===w.ok
         ?`<span class="fb ok">✓ Верно! Молодец!</span>`
@@ -541,19 +597,57 @@ function s2(){
 }
 function wAnswer(k){if(st.ansState!=null)return;st.ansState=k;st.wdone[st.wq]=(k===WARMUP[st.wq].ok);render();}
 function wNext(){st.wq++;st.ansState=null;st.wReveal=false;render();}
+/* class answer distribution on the student tablet (warm-up + explanation tasks) */
+function distHTML(q,a){
+  const max=Math.max(...q.dist);
+  return `<div class="wdist"><div class="wdist-cap">Как ответил класс</div>
+    ${q.opts.map((o,k)=>`<div class="wdist-row ${k===q.ok?'correct':''} ${k===a?'mine':''}">
+      <span class="wdist-lbl">${o}${k===q.ok?' ✓':''}${k===a?' · твой ответ':''}</span>
+      <span class="wdist-bar"><i style="width:${Math.round(q.dist[k]/max*100)}%"></i></span>
+      <span class="wdist-n">${q.dist[k]}</span></div>`).join("")}
+  </div>`;
+}
 
 /* ----- S3 explanation ----- */
 function s3(){
+  // учитель открыл фронтальное задание — решаем его на планшете
+  if(st.exTask!=null) return exTaskScreen();
+  // Фаза 1: презентация на доске (вне планшета). Фаза 2+: слайды дублируются на планшете.
+  if(phaseLvl<2){
+    return `<div class="t-pad">${tabletTop("Объяснение")}${phasebar(2)}
+      <div class="bigcard center" style="margin-top:54px;gap:12px;max-width:640px;margin-left:auto;margin-right:auto">
+        <div style="font-size:60px">🔒</div>
+        <h2 class="kid">Смотрим на учителя</h2>
+      </div></div>`;
+  }
   const s=SLIDES[st.slide];
   return `<div class="t-pad">${tabletTop("Объяснение")}${phasebar(2)}
     <div class="slide">
       <div class="big">${s.t}</div>
       ${s.body}
     </div>
-    <div class="viewonly"><span class="lock">🔒 Смотрим вместе</span> Экран листает учитель — как на проекторе</div>
+    <div class="viewonly"><span class="lock">🔒 Смотрим вместе</span></div>
     <div class="slidecount">Слайд ${st.slide+1} из ${SLIDES.length}</div>
   </div>`;
 }
+function exTaskScreen(){
+  const q=EXTASK[st.exTask], a=st.exAns, rev=st.exReveal;
+  return `<div class="t-pad">${tabletTop("Объяснение")}${phasebar(2)}
+    <div class="prac-top"><span class="pill accent">✏️ Задание от учителя</span><span class="prac-prog">Объяснение · задание ${st.exTask+1} из ${EXTASK.length}</span></div>
+    <div class="question">${q.q}</div>
+    <div class="opts">${q.opts.map((o,k)=>{
+      let cls="opt";
+      if(a!=null){ if(rev){ if(k===a)cls+=a===q.ok?" sel-ok":" sel-bad"; if(k===q.ok&&a!==q.ok)cls+=" show-ok"; } else if(k===a)cls+=" sel"; }
+      return `<button class="${cls}" ${a!=null?"disabled":""} onclick="exAnswer(${k})">${o}</button>`;
+    }).join("")}</div>
+    ${rev?distHTML(q,a):""}
+    <div class="feedback">${a!=null?(rev
+      ?(a===q.ok?`<span class="fb ok">✓ Верно!</span>`:`<span class="fb bad">Не совсем — правильный ответ подсвечен</span>`)
+      :`<span class="pulse"><span class="dot"></span> Ответ отправлен учителю — ждём разбор</span>`)
+      :`<span class="sub">Выбери ответ — учитель сразу увидит</span>`}</div>
+  </div>`;
+}
+function exAnswer(k){if(st.exAns!=null)return;st.exAns=k;render();}
 
 /* ----- S4 practice ----- */
 function s4(){
@@ -573,15 +667,24 @@ function s4(){
       <span class="pill accent">✏️ Решаем сами</span>
       <span class="prac-prog">Задача ${i+1} из ${PRACTICE.length} · решено верно: ${st.pracOk}</span>
     </div>`;
+  // «Позвать учителя» (S6) разблокируется после ≥2 неверных попыток
+  const helpBtn=st.wrongTries>=2
+    ?`<button class="btn ghost help-link" onclick="st.stuck=true;render()">✋ Позвать учителя</button>`:"";
   if(t.type==="written"){
+    const photoBtn=phaseLvl>=2
+      ?`<button class="btn primary" onclick="st.camStep=0;go('s5')">📷 Сфотографировать решение</button>`
+      :`<button class="btn primary" onclick="pNext()">Готово, решил в тетради →</button>`;
+    const banner=phaseLvl>=2
+      ?`<span class="ic">📓</span> Реши в тетради, потом сфотографируй страницу — проверим к утру`
+      :`<span class="ic">📓</span> Реши в тетради и покажи решение учителю`;
     return `<div class="t-pad">${tabletTop("Практика")}${phasebar(3)}${head}
       <div class="task-card">
         <div class="task-num">Задача ${i+1} · письменная</div>
         <div class="task-text">${t.text}</div>
-        <div class="written-banner"><span class="ic">📓</span> Реши в тетради, потом сфотографируй страницу — проверим к утру</div>
+        <div class="written-banner">${banner}</div>
         <div class="task-foot">
-          <button class="btn primary" onclick="st.camStep=0;go('s5')">📷 Сфотографировать решение</button>
-          <button class="btn ghost help-link" onclick="st.stuck=true;render()">✋ Не получается</button>
+          ${photoBtn}
+          <button class="btn ghost help-link" onclick="st.stuck=true;render()">✋ Позвать учителя</button>
         </div>
       </div></div>`;
   }
@@ -595,7 +698,7 @@ function s4(){
         ${a==="ok"
           ?`<button class="btn primary" onclick="pNext()">Дальше →</button>`
           :`<button class="btn primary" onclick="pCheck()">Проверить</button>`}
-        <button class="btn ghost help-link" onclick="st.stuck=true;render()">✋ Не получается</button>
+        ${helpBtn}
       </div>
       <div class="feedback" style="text-align:left;min-height:40px;margin-top:14px">
         ${a==="ok"?`<span class="fb ok">✓ Верно! Так держать!</span>`:a==="bad"?`<span class="fb bad">Пока не так. Вспомни: остаток меньше делителя. Попробуй ещё раз!</span>`:""}
@@ -606,12 +709,13 @@ function pCheck(){
   const t=PRACTICE[st.prac];
   const ok=t.fields.every((f,k)=>{const v=document.getElementById("pf"+k).value.trim();return v!==""&&+v===f.a;});
   if(ok&&st.ansState!=="ok")st.pracOk++;
+  if(!ok)st.wrongTries++;
   st.ansState=ok?"ok":"bad";
   const vals=t.fields.map((_,k)=>document.getElementById("pf"+k).value);
   render();
   t.fields.forEach((_,k)=>{const el=document.getElementById("pf"+k);if(el)el.value=vals[k];});
 }
-function pNext(){st.prac++;st.ansState=null;render();}
+function pNext(){st.prac++;st.ansState=null;st.wrongTries=0;render();}
 
 /* ----- S5 camera ----- */
 function s5(){
@@ -649,30 +753,35 @@ function s6(){
     <div class="bigcard center stuck-card" style="gap:8px">
       <div class="stuck-emoji">🙋</div>
       <h2 class="kid">Учитель уже знает!</h2>
-      <div class="sub">Твоя карточка подсветилась у учителя на экране.<br>Он подойдёт или соберёт мини-группу для разбора.</div>
       <div style="display:flex;gap:10px;margin-top:14px">
         <button class="btn primary" onclick="st.stuck=false;go('s4')">Попробую ещё раз 💪</button>
-        <button class="btn ghost" onclick="toast('Ок, подожди учителя — можно порешать прошлую тему')">Подожду учителя</button>
+        <button class="btn ghost" onclick="toast('Хорошо, ждём учителя')">Подожду учителя</button>
       </div>
-      <div class="sub" style="font-size:12px;margin-top:10px">Никто из класса не видит, что ты позвал на помощь</div>
     </div></div>`;
 }
 
 /* ----- S7 reflection ----- */
 function s7(){
-  const EMOJIS=[["😕","Пока трудно"],["🙂","Почти понял"],["😀","Понял!"],["🤩","Могу объяснить другу"]];
+  // Фаза 1: оценка урока/интересности. Фаза 2+: самооценка понимания темы (данные в профиль).
+  const P1=phaseLvl<2;
+  const EMOJIS=P1
+    ?[["😴","Скучно"],["😐","Так себе"],["🙂","Понравилось"],["🤩","Очень круто"]]
+    :[["😕","Пока трудно"],["🙂","Почти понял"],["😀","Понял!"],["🤩","Могу объяснить другу"]];
+  const qHTML=P1?`Как тебе сегодняшний урок?`:`Как ты сегодня понял тему<br>«Деление с остатком»?`;
+  const hint=P1?`Любой ответ важен — так уроки будут интереснее`:`Честный ответ — это здорово: так задания будут точно по силам`;
+  const sentNote=P1?`Учитель увидит, как классу зашёл урок`:`Твой ответ поможет подобрать задания специально для тебя`;
   if(st.reflSent) return `<div class="t-pad">${tabletTop("Рефлексия")}${phasebar(4)}
     <div class="bigcard center" style="margin-top:60px;gap:10px;max-width:620px;margin-left:auto;margin-right:auto">
       <div style="font-size:52px">${EMOJIS[st.refl][0]}</div>
       <h2 class="kid">Спасибо, что поделилась!</h2>
-      <div class="sub">Твой ответ поможет подобрать задания специально для тебя</div>
+      <div class="sub">${sentNote}</div>
       <div class="pulse" style="margin-top:8px"><span class="dot"></span> Учитель завершит урок — и появится итог</div>
     </div></div>`;
   return `<div class="t-pad">${tabletTop("Рефлексия")}${phasebar(4)}
     <div class="center" style="margin-top:36px">
-      <h1 class="kid" style="font-size:26px">Как ты сегодня понял тему<br>«Деление с остатком»?</h1>
+      <h1 class="kid" style="font-size:26px">${qHTML}</h1>
       <div class="emoji-row">${EMOJIS.map((e,k)=>`<button class="emo ${st.refl===k?"sel":""}" onclick="st.refl=${k};render()"><span class="e">${e[0]}</span><span class="l">${e[1]}</span></button>`).join("")}</div>
-      <div class="sub" style="margin:10px 0 16px">Честный ответ — это здорово: так задания будут точно по силам</div>
+      <div class="sub" style="margin:10px 0 16px">${hint}</div>
       <button class="btn primary big" ${st.refl==null?"disabled":""} onclick="st.reflSent=true;render()">Отправить</button>
     </div></div>`;
 }
@@ -689,9 +798,9 @@ function s8(){
         <div class="fstat"><div class="v">🌙 1</div><div class="l">решение проверим к утру</div></div>
       </div>
       <div class="hw-card">
-        <span class="ic">📱</span>
-        <div><b>Домашка уже в твоём телефоне</b>
-        <div class="meta">6 заданий · Деление с остатком · сдать до завтра, 8:00</div></div>
+        <span class="ic">📒</span>
+        <div><b>Назначено домашнее задание</b>
+        <div class="meta">Выполни до завтра, 8:00 · 6 заданий · Деление с остатком</div></div>
       </div>
     </div></div>`;
 }
@@ -709,12 +818,12 @@ function s9(){
     <div class="pcard">
       <div class="hd"><span style="font-size:20px">📒</span><span class="t">Домашка · Деление с остатком</span><span class="deadline">до завтра 8:00</span></div>
       <div class="pbar ${done?"green":""}"><i style="width:${done?100:Math.round(solved/6*100)}%"></i></div>
-      <div class="pmeta">${done?"Сдано! Результат: 5 из 6 ✓":`Решено ${solved} из 6 заданий`}</div>
+      <div class="pmeta">${done?(phaseLvl>=2?"Сдано! Результат: 5 из 6 ✓":"Отправлено — учитель проверит"):`Решено ${solved} из 6 заданий`}</div>
       <div style="margin-top:12px">${done
-        ?`<button class="btn soft" style="width:100%" onclick="go('s11')">Посмотреть результат</button>`
+        ?`<button class="btn soft" style="width:100%" onclick="go('s11')">Посмотреть${phaseLvl>=2?" результат":""}</button>`
         :`<button class="btn primary" style="width:100%" onclick="go('s10')">${solved?"Продолжить":"Начать"} →</button>`}</div>
     </div>
-    <div class="pcard">
+    <div class="pcard" data-phase="2">
       <div class="hd"><span style="font-size:20px">📊</span><span class="t">По итогам урока</span></div>
       <span class="fb-topic">${FEEDBACK.topic}</span>
       <div class="fb-line good"><span class="ic">✅</span><span>${FEEDBACK.good}</span></div>
@@ -742,12 +851,15 @@ function s10(){
     <div class="p-q">${h.q}</div>
     <div class="p-opts">${h.opts.map((o,k)=>{
       let cls="p-opt";
-      if(a!=null){ if(k===a) cls+=a===h.ok?" sel-ok":" sel-bad"; if(k===h.ok&&a!==h.ok) cls+=" show-ok"; }
+      if(a!=null){
+        if(phaseLvl>=2){ if(k===a) cls+=a===h.ok?" sel-ok":" sel-bad"; if(k===h.ok&&a!==h.ok) cls+=" show-ok"; }
+        else if(k===a) cls+=" sel";
+      }
       return `<button class="${cls}" ${a!=null?"disabled":""} onclick="hAnswer(${k})">${o}</button>`;
     }).join("")}</div>
-    <div class="feedback">${a!=null?(a===h.ok
-      ?`<span class="fb ok">✓ Верно!</span>`
-      :`<span class="fb bad">Правильный ответ подсвечен</span>`)
+    <div class="feedback">${a!=null?(phaseLvl>=2
+      ?(a===h.ok?`<span class="fb ok">✓ Верно!</span>`:`<span class="fb bad">Правильный ответ подсвечен</span>`)
+      :`<span class="sub">✓ Ответ сохранён · проверит учитель</span>`)
       :`<span class="sub">Можно прерваться — прогресс сохранится</span>`}
       ${a!=null?`<div style="margin-top:12px"><button class="btn primary" style="width:100%" onclick="hNext()">${i===5?"Завершить":"Дальше"} →</button></div>`:""}
     </div></div>`;
@@ -758,6 +870,15 @@ function hNext(){st.hq++;st.ansState=null;render();}
 /* ----- S11 hw done ----- */
 function s11(){
   st.hwFinished=true;
+  if(phaseLvl<2){
+    return `<div class="p-pad">${pTop("Домашка отправлена!")}
+      <div class="pcard center" style="gap:8px;padding:24px">
+        <div style="font-size:44px">📨</div>
+        <h2 class="kid" style="font-size:20px">Все 6 заданий отправлены</h2>
+        <div class="sub">Учитель проверит к утру и даст обратную связь на уроке.</div>
+      </div>
+      <button class="btn soft" style="width:100%" onclick="go('s9')">На главную</button></div>`;
+  }
   const ok=st.hdone.length?st.hdone.filter(Boolean).length:5;
   const wrongIdx=st.hdone.length?st.hdone.findIndex(v=>v===false):2;
   const stars=starsFor(ok,6);
@@ -785,12 +906,12 @@ function s11(){
 function s12(){
   return `<div class="p-pad">${pTop("Мой прогресс")}
     <div class="pcard">
-      <div class="hd"><span class="t">📚 Мои уроки</span><span style="margin-left:auto" class="pmeta">★ — за домашку</span></div>
+      <div class="hd"><span class="t">📚 Мои уроки</span><span style="margin-left:auto" class="pmeta">${phaseLvl>=2?"★ — за домашку":"✓ — ДЗ сдано"}</span></div>
       <div class="trail">${TOPICS.map(t=>`
         <div class="tnode ${t.cur?"cur":""} ${t.locked?"locked":""} ${t.missed?"missed":""}">
           <div class="nm">${t.nm}</div>
           <div class="st">${t.cur?"Учим сейчас":t.locked?"Откроется дальше":t.missed?"Домашка не сдана":"Пройдено"}</div>
-          <span class="stars">${t.cur?"✏️":t.locked?"🔒":t.missed?'<span class="dim-ic">📥</span>':starsHTML(t.stars)}</span>
+          <span class="stars">${t.cur?"✏️":t.locked?"🔒":t.missed?'<span class="dim-ic">📥</span>':(phaseLvl>=2?starsHTML(t.stars):'<span style="color:var(--green);font-weight:800">✓</span>')}</span>
         </div>`).join("")}</div>
     </div>
     <div class="pcard">
@@ -824,7 +945,7 @@ function s14(){return `<div class="t-pad">${tabletTop("")}
   </div></div>`;}
 
 /* ================= init ================= */
-buildNav();render();
+buildNav();setPhaseLvl(phaseLvl);
 </script>
 </body>
 </html>
