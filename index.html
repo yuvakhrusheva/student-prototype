@@ -297,6 +297,30 @@
   .home-card .hc-go{font-size:24px;color:var(--accent);font-weight:700;flex-shrink:0}
   .lesson-status{background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
   .lesson-status .ls-meta{color:var(--muted);font-size:11.5px;margin-top:4px}
+  /* secondary nav on the tablet home: progress / all homework */
+  .home-nav{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .home-card.mini{padding:15px 18px}
+  .home-card.mini .hc-ic{font-size:26px}
+  .home-card.mini .hc-d b{font-size:15px}
+  .home-card.mini .hc-d .meta{font-size:12.5px}
+
+  /* clickable homework card on the «Урок пройден» screen */
+  .hw-card.link{cursor:pointer;width:100%;font-family:inherit;color:inherit;border:none;transition:.12s}
+  .hw-card.link:hover{box-shadow:0 6px 18px rgba(88,0,229,.14)}
+  .hw-card .go{margin-left:auto;font-size:26px;color:var(--accent);font-weight:700;flex-shrink:0}
+
+  /* ===== Reflection · criteria self-assessment (3-level) ===== */
+  .crit-list{display:flex;flex-direction:column;gap:14px;max-width:700px;margin:20px auto 0;width:100%}
+  .crit-item{background:var(--surface);border:1.5px solid var(--line);border-radius:18px;padding:16px 18px;text-align:left}
+  .crit-q{font-weight:800;font-size:16px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .crit-q .n{flex:0 0 26px;height:26px;border-radius:8px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-size:13px}
+  .crit-opts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .crit-opt{border:2px solid var(--line);border-radius:14px;padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:7px;font-weight:700;font-size:12.5px;color:var(--muted);transition:.12s;text-align:center;line-height:1.25}
+  .crit-opt .ce{font-size:28px}
+  .crit-opt:hover{border-color:var(--accent)}
+  .crit-opt.sel.l0{border-color:var(--coral);background:var(--coral-soft);color:var(--coral)}
+  .crit-opt.sel.l1{border-color:var(--blue);background:var(--blue-soft);color:var(--blue)}
+  .crit-opt.sel.l2{border-color:var(--green);background:var(--green-soft);color:var(--green)}
 
   /* ===== Development-phase switcher (Фаза 1 / Фаза 2 / Финал) ===== */
   .phase-switch{display:flex;align-items:center;gap:8px}
@@ -477,7 +501,7 @@ const initState=()=>({
   exTask:null, exAns:null, exReveal:false,
   prac:0, pracOk:0, ansState:null, stuck:false, wrongTries:0,
   camStep:0,
-  refl:null, reflSent:false,
+  refl:null, reflStep:"emoji", reflCrit:{}, reflSent:false,
   hq:0, hdone:[], hwFinished:false,
 });
 let st=initState();
@@ -524,6 +548,18 @@ const FEEDBACK={
   good:"Уверенно находишь, сколько выходит целых групп и какой получается остаток.",
   grow:"Стоит ещё потренировать проверку умножением — поэтому в домашке есть похожие задачи.",
 };
+// Критерии оценивания берутся из плана урока учителя (для темы «Деление с остатком»)
+const REFLCRIT=[
+ "Нахожу неполное частное и остаток",
+ "Проверяю деление умножением",
+ "Помню, что остаток меньше делителя",
+];
+// Трёхуровневая шкала самооценки понимания
+const CRITLEVELS=[
+ ["😕","Не понял"],
+ ["🙂","Понимаю сам"],
+ ["🤩","Понимаю и могу научить другого"],
+];
 const starsFor=(ok,total)=>{const r=ok/total;return r>=0.8?3:r>=0.5?2:1;};
 const starsHTML=(n,big)=>`<span class="${big?"big-stars":"hw-stars"}">${"★".repeat(n)}<span class="dim">${"★".repeat(3-n)}</span></span>`;
 // «Мои уроки»: каждый пройденный урок несёт звёзды за свою домашку; пропущенные — с причиной
@@ -588,6 +624,21 @@ function s1(){
           <div class="hc-d"><b>Домашняя работа</b><div class="meta">${hw.label}</div></div>
           <span class="hc-go">${hw.done?"›":"→"}</span>
         </button>
+      </div>
+      <div>
+        <div class="hb-label">Что ещё</div>
+        <div class="home-nav">
+          <button class="home-card mini" onclick="go('s12')">
+            <span class="hc-ic">🗺️</span>
+            <div class="hc-d"><b>Мой прогресс</b><div class="meta">Карта тем${phaseLvl>=2?" и звёзды":""}</div></div>
+            <span class="hc-go">›</span>
+          </button>
+          <button class="home-card mini" onclick="go('s9')">
+            <span class="hc-ic">📚</span>
+            <div class="hc-d"><b>Все мои домашки</b><div class="meta">Текущие и пропущенные</div></div>
+            <span class="hc-go">›</span>
+          </button>
+        </div>
       </div>
     </div></div>`;
 }
@@ -793,31 +844,56 @@ function s6(){
     </div></div>`;
 }
 
-/* ----- S7 reflection ----- */
+/* ----- S7 reflection -----
+   Последовательность: смайлики (эмоц. оценка урока) → самооценка по критериям (Ф2+) → готово.
+   Ф1: только смайлики. Ф2+: после смайликов — самооценка по каждому критерию плана урока. */
+const REFLEMOJIS=[["😴","Скучно"],["😐","Так себе"],["🙂","Понравилось"],["🤩","Очень круто"]];
 function s7(){
-  // Фаза 1: оценка урока/интересности. Фаза 2+: самооценка понимания темы (данные в профиль).
-  const P1=phaseLvl<2;
-  const EMOJIS=P1
-    ?[["😴","Скучно"],["😐","Так себе"],["🙂","Понравилось"],["🤩","Очень круто"]]
-    :[["😕","Пока трудно"],["🙂","Почти понял"],["😀","Понял!"],["🤩","Могу объяснить другу"]];
-  const qHTML=P1?`Как тебе сегодняшний урок?`:`Как ты сегодня понял тему<br>«Деление с остатком»?`;
-  const hint=P1?`Любой ответ важен — так уроки будут интереснее`:`Честный ответ — это здорово: так задания будут точно по силам`;
-  const sentNote=P1?`Учитель увидит, как классу зашёл урок`:`Твой ответ поможет подобрать задания специально для тебя`;
-  if(st.reflSent) return `<div class="t-pad">${tabletTop("Рефлексия")}${phasebar(4)}
-    <div class="bigcard center" style="margin-top:60px;gap:10px;max-width:620px;margin-left:auto;margin-right:auto">
-      <div style="font-size:52px">${EMOJIS[st.refl][0]}</div>
-      <h2 class="kid">Спасибо, что поделилась!</h2>
-      <div class="sub">${sentNote}</div>
-      <div class="pulse" style="margin-top:8px"><span class="dot"></span> Учитель завершит урок — и появится итог</div>
-    </div></div>`;
+  const needCrit=phaseLvl>=2;
+  // ----- готово: подтверждение -----
+  if(st.reflSent){
+    const sentNote=needCrit
+      ?`Спасибо за оценку урока и за честную самооценку — это поможет подобрать задания по силам`
+      :`Учитель увидит, как классу зашёл урок`;
+    return `<div class="t-pad">${tabletTop("Рефлексия")}${phasebar(4)}
+      <div class="bigcard center" style="margin-top:60px;gap:10px;max-width:620px;margin-left:auto;margin-right:auto">
+        <div style="font-size:52px">${REFLEMOJIS[st.refl][0]}</div>
+        <h2 class="kid">Спасибо, что поделилась!</h2>
+        <div class="sub">${sentNote}</div>
+        <div class="pulse" style="margin-top:8px"><span class="dot"></span> Учитель завершит урок — и появится итог</div>
+      </div></div>`;
+  }
+  // ----- шаг 2: самооценка по критериям (Ф2+) -----
+  if(st.reflStep==="crit"){
+    const allRated=REFLCRIT.every((_,i)=>st.reflCrit[i]!=null);
+    return `<div class="t-pad">${tabletTop("Рефлексия")}${phasebar(4)}
+      <div class="center" style="margin-top:8px">
+        <h1 class="kid" style="font-size:24px">Оцени себя по теме<br>«Деление с остатком»</h1>
+        <div class="sub" style="margin-top:8px">Честный ответ — это здорово: так задания будут точно по силам</div>
+      </div>
+      <div class="crit-list">${REFLCRIT.map((c,i)=>`
+        <div class="crit-item">
+          <div class="crit-q"><span class="n">${i+1}</span>${c}</div>
+          <div class="crit-opts">${CRITLEVELS.map((lv,l)=>`
+            <button class="crit-opt l${l} ${st.reflCrit[i]===l?"sel":""}" onclick="reflPickCrit(${i},${l})">
+              <span class="ce">${lv[0]}</span><span>${lv[1]}</span>
+            </button>`).join("")}</div>
+        </div>`).join("")}</div>
+      <div class="center" style="margin-top:18px">
+        <button class="btn primary big" ${allRated?"":"disabled"} onclick="st.reflSent=true;render()">Отправить</button>
+      </div></div>`;
+  }
+  // ----- шаг 1: эмоциональная оценка урока (смайлики) -----
+  const next=needCrit?`st.reflStep='crit'`:`st.reflSent=true`;
   return `<div class="t-pad">${tabletTop("Рефлексия")}${phasebar(4)}
     <div class="center" style="margin-top:36px">
-      <h1 class="kid" style="font-size:26px">${qHTML}</h1>
-      <div class="emoji-row">${EMOJIS.map((e,k)=>`<button class="emo ${st.refl===k?"sel":""}" onclick="st.refl=${k};render()"><span class="e">${e[0]}</span><span class="l">${e[1]}</span></button>`).join("")}</div>
-      <div class="sub" style="margin:10px 0 16px">${hint}</div>
-      <button class="btn primary big" ${st.refl==null?"disabled":""} onclick="st.reflSent=true;render()">Отправить</button>
+      <h1 class="kid" style="font-size:26px">Как тебе сегодняшний урок?</h1>
+      <div class="emoji-row">${REFLEMOJIS.map((e,k)=>`<button class="emo ${st.refl===k?"sel":""}" onclick="st.refl=${k};render()"><span class="e">${e[0]}</span><span class="l">${e[1]}</span></button>`).join("")}</div>
+      <div class="sub" style="margin:10px 0 16px">Любой ответ важен — так уроки будут интереснее</div>
+      <button class="btn primary big" ${st.refl==null?"disabled":""} onclick="${next};render()">${needCrit?"Дальше →":"Отправить"}</button>
     </div></div>`;
 }
+function reflPickCrit(i,l){st.reflCrit[i]=l;render();}
 
 /* ----- S8 finished ----- */
 function s8(){
@@ -830,11 +906,13 @@ function s8(){
         <div class="fstat"><div class="v green">6</div><div class="l">верно с 1-й попытки</div></div>
         <div class="fstat"><div class="v">🌙 1</div><div class="l">решение проверим к утру</div></div>
       </div>
-      <div class="hw-card">
+      <button class="hw-card link" onclick="go('s10')">
         <span class="ic">📒</span>
         <div><b>Назначено домашнее задание</b>
         <div class="meta">Выполни до завтра, 8:00 · 6 заданий · Деление с остатком</div></div>
-      </div>
+        <span class="go">→</span>
+      </button>
+      <div class="sub" style="margin-top:10px">Нажми, чтобы перейти к домашке</div>
     </div></div>`;
 }
 
