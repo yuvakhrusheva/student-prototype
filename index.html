@@ -297,12 +297,6 @@
   .home-card .hc-go{font-size:24px;color:var(--accent);font-weight:700;flex-shrink:0}
   .lesson-status{background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
   .lesson-status .ls-meta{color:var(--muted);font-size:11.5px;margin-top:4px}
-  /* secondary nav on the tablet home: progress / all homework */
-  .home-nav{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .home-card.mini{padding:15px 18px}
-  .home-card.mini .hc-ic{font-size:26px}
-  .home-card.mini .hc-d b{font-size:15px}
-  .home-card.mini .hc-d .meta{font-size:12.5px}
 
   /* clickable homework card on the «Урок пройден» screen */
   .hw-card.link{cursor:pointer;width:100%;font-family:inherit;color:inherit;border:none;transition:.12s}
@@ -386,10 +380,13 @@ const SCREENS=[
  {id:"s2", ic:"⚡", nm:"S2 · Разминка", dev:"tablet", phase:1},
  {id:"s3", ic:"▶", nm:"S3 · Объяснение", dev:"tablet", phase:1},
  {id:"s4", ic:"✎", nm:"S4 · Практика", dev:"tablet", phase:1},
- {id:"s5", ic:"📷", nm:"S5 · Фото тетради", dev:"tablet", phase:2},
+ {id:"s5", ic:"📷", nm:"S5 · Фото тетради", dev:"tablet", phase:1},
  {id:"s6", ic:"✋", nm:"S6 · «Не получается»", dev:"tablet", phase:1},
  {id:"s7", ic:"☺", nm:"S7 · Рефлексия", dev:"tablet", phase:1},
  {id:"s8", ic:"★", nm:"S8 · Урок завершён", dev:"tablet", phase:1},
+ {id:"s15", group:"Дома · планшет", ic:"✎", nm:"S15 · Домашка · планшет", dev:"tablet", phase:1},
+ {id:"s16", ic:"✓", nm:"S16 · Домашка сдана · планшет", dev:"tablet", phase:1},
+ {id:"s17", ic:"⚑", nm:"S17 · Мой прогресс · планшет", dev:"tablet", phase:1},
  {id:"s9", group:"Дома · мобильный", ic:"⌂", nm:"S9 · Главная · телефон", dev:"phone", phase:1},
  {id:"s10", ic:"✎", nm:"S10 · Домашка", dev:"phone", phase:1},
  {id:"s11", ic:"✓", nm:"S11 · Домашка сдана", dev:"phone", phase:1},
@@ -483,10 +480,11 @@ const DEMO={
  s7:[{l:"▶ Учитель завершил урок и выдал ДЗ",f:()=>go('s8')}],
  s8:[{l:"📱 Вечером дома: открыть телефон",f:()=>go('s9')}],
  s9:[],s10:[],s11:[],s12:[],s13:[],s14:[],
+ s15:[],s16:[],s17:[],
 };
 function demoBar(){
   const list=DEMO[cur]||[];
-  const note={s1:"Кнопки с пунктиром — симуляция событий вне планшета (действия учителя)",s2:"Распределение по классу появляется по сигналу учителя «Показать ответы»",s3:"Презентация — на доске; учитель открывает фронтальные задания на планшет по одному"}[cur]||"";
+  const note={s1:"Кнопки с пунктиром — симуляция событий вне планшета (действия учителя)",s2:"Распределение по классу появляется по сигналу учителя «Показать ответы»",s3:"Презентация — на доске; учитель открывает фронтальные задания на планшет по одному",s15:"Домашку ученик решает сам, на планшете — без сигналов учителя"}[cur]||"";
   document.getElementById("demoBar").innerHTML=
     `<span class="lbl">Демо</span>`+
     list.map((d,i)=>`<button class="demo-btn" onclick="DEMO['${cur}'][${i}].f()">${d.l}</button>`).join("")+
@@ -578,7 +576,7 @@ function render(){
   demoBar();
   const scr=SCREENS.find(s=>s.id===cur);
   const host=document.getElementById(scr.dev==="tablet"?"tscreen":"pscreen");
-  host.innerHTML=({s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14})[cur]();
+  host.innerHTML=({s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17})[cur]();
   fitContent();
   fitStage();
 }
@@ -606,6 +604,7 @@ function hwStatus(){
 /* ----- S1 unified home · tablet (in class): lesson primary + homework ----- */
 function s1(){
   const hw=hwStatus();
+  const tgo=hw.done?"s16":"s15"; // планшетный поток домашки (мобильный — s10/s11)
   return `<div class="t-pad">${tabletTop("")}
     <h1 class="kid" style="text-align:center;margin:4px 0 18px">Привет, Айсель!</h1>
     <div class="home-stack">
@@ -619,26 +618,19 @@ function s1(){
       </div>
       <div>
         <div class="hb-label">Домашняя работа</div>
-        <button class="home-card" onclick="go('${hw.go}')">
+        <button class="home-card" onclick="go('${tgo}')">
           <span class="hc-ic">📒</span>
           <div class="hc-d"><b>Домашняя работа</b><div class="meta">${hw.label}</div></div>
           <span class="hc-go">${hw.done?"›":"→"}</span>
         </button>
       </div>
       <div>
-        <div class="hb-label">Что ещё</div>
-        <div class="home-nav">
-          <button class="home-card mini" onclick="go('s12')">
-            <span class="hc-ic">🗺️</span>
-            <div class="hc-d"><b>Мой прогресс</b><div class="meta">Карта тем${phaseLvl>=2?" и звёзды":""}</div></div>
-            <span class="hc-go">›</span>
-          </button>
-          <button class="home-card mini" onclick="go('s9')">
-            <span class="hc-ic">📚</span>
-            <div class="hc-d"><b>Все мои домашки</b><div class="meta">Текущие и пропущенные</div></div>
-            <span class="hc-go">›</span>
-          </button>
-        </div>
+        <div class="hb-label">Мой прогресс</div>
+        <button class="home-card" onclick="go('s17')">
+          <span class="hc-ic">🗺️</span>
+          <div class="hc-d"><b>Мой прогресс</b><div class="meta">Карта тем${phaseLvl>=2?" и звёзды":""}</div></div>
+          <span class="hc-go">›</span>
+        </button>
       </div>
     </div></div>`;
 }
@@ -755,19 +747,13 @@ function s4(){
   const helpBtn=st.wrongTries>=2
     ?`<button class="btn ghost help-link" onclick="st.stuck=true;render()">✋ Позвать учителя</button>`:"";
   if(t.type==="written"){
-    const photoBtn=phaseLvl>=2
-      ?`<button class="btn primary" onclick="st.camStep=0;go('s5')">📷 Сфотографировать решение</button>`
-      :`<button class="btn primary" onclick="pNext()">Готово, решил в тетради →</button>`;
-    const banner=phaseLvl>=2
-      ?`<span class="ic">📓</span> Реши в тетради, потом сфотографируй страницу — проверим к утру`
-      :`<span class="ic">📓</span> Реши в тетради и покажи решение учителю`;
     return `<div class="t-pad">${tabletTop("Практика")}${phasebar(3)}${head}
       <div class="task-card">
         <div class="task-num">Задача ${i+1} · письменная</div>
         <div class="task-text">${t.text}</div>
-        <div class="written-banner">${banner}</div>
+        <div class="written-banner"><span class="ic">📓</span> Реши в тетради, потом сфотографируй страницу — учитель проверит к утру</div>
         <div class="task-foot">
-          ${photoBtn}
+          <button class="btn primary" onclick="st.camStep=0;go('s5')">📷 Сфотографировать решение</button>
           <button class="btn ghost help-link" onclick="st.stuck=true;render()">✋ Позвать учителя</button>
         </div>
       </div></div>`;
@@ -906,13 +892,118 @@ function s8(){
         <div class="fstat"><div class="v green">6</div><div class="l">верно с 1-й попытки</div></div>
         <div class="fstat"><div class="v">🌙 1</div><div class="l">решение проверим к утру</div></div>
       </div>
-      <button class="hw-card link" onclick="go('s10')">
+      <button class="hw-card link" onclick="go('s15')">
         <span class="ic">📒</span>
         <div><b>Назначено домашнее задание</b>
         <div class="meta">Выполни до завтра, 8:00 · 6 заданий · Деление с остатком</div></div>
         <span class="go">→</span>
       </button>
       <div class="sub" style="margin-top:10px">Нажми, чтобы перейти к домашке</div>
+    </div></div>`;
+}
+
+/* ================= HOMEWORK · TABLET (landscape) =================
+   Вторая версия экранов домашки — в планшетной рамке. Делит состояние и
+   данные с телефонной версией (st.hq/hdone/hwFinished, HOMEWORK), отличается
+   только вёрсткой. Стартовый экран общий (S1) — отдельной планшетной «главной»
+   для домашки нет. */
+
+/* ----- S15 homework · solving (tablet) ----- */
+function s15(){
+  const i=st.hq;
+  if(i>=HOMEWORK.length){st.hwFinished=true;return s16();}
+  const h=HOMEWORK[i], a=st.ansState;
+  const dots=HOMEWORK.map((_,k)=>`<span class="q-dot ${k===i?"cur":st.hdone[k]===true?"ok":st.hdone[k]===false?"bad":""}"></span>`).join("");
+  return `<div class="t-pad">${tabletTop("")}
+    <div class="prac-top">
+      <span class="pill accent">📒 Домашняя работа · Деление с остатком</span>
+      <span class="prac-prog">Задание ${i+1} из ${HOMEWORK.length} · до завтра, 8:00</span>
+    </div>
+    <div class="q-progress">${dots}</div>
+    <div class="question">${h.q}</div>
+    <div class="opts">${h.opts.map((o,k)=>{
+      let cls="opt";
+      if(a!=null){
+        if(phaseLvl>=2){ if(k===a) cls+=a===h.ok?" sel-ok":" sel-bad"; if(k===h.ok&&a!==h.ok) cls+=" show-ok"; }
+        else if(k===a) cls+=" sel";
+      }
+      return `<button class="${cls}" ${a!=null?"disabled":""} onclick="hAnswer(${k})">${o}</button>`;
+    }).join("")}</div>
+    <div class="feedback">${a!=null?(phaseLvl>=2
+      ?(a===h.ok?`<span class="fb ok">✓ Верно!</span>`:`<span class="fb bad">Правильный ответ подсвечен</span>`)
+      :`<span class="fb ok" style="background:var(--accent-soft);color:var(--accent)">✓ Ответ сохранён · проверит учитель</span>`)
+      :`<span class="sub">Можно прерваться — прогресс сохранится</span>`}
+      ${a!=null?`<div style="margin-top:14px"><button class="btn primary" onclick="hNext()">${i===HOMEWORK.length-1?"Завершить":"Дальше"} →</button></div>`:""}
+    </div></div>`;
+}
+
+/* ----- S16 homework · submitted / result (tablet) ----- */
+function s16(){
+  st.hwFinished=true;
+  if(phaseLvl<2){
+    return `<div class="t-pad">${tabletTop("Домашняя работа")}
+      <div class="bigcard center" style="margin-top:64px;gap:10px;max-width:640px;margin-left:auto;margin-right:auto">
+        <div style="font-size:56px">📨</div>
+        <h2 class="kid">Все 6 заданий отправлены!</h2>
+        <div class="sub">Учитель проверит к утру и даст обратную связь на уроке.</div>
+        <div style="margin-top:16px"><button class="btn primary" onclick="go('s1')">На главную</button></div>
+      </div></div>`;
+  }
+  const ok=st.hdone.length?st.hdone.filter(Boolean).length:5;
+  const wrongIdx=st.hdone.length?st.hdone.findIndex(v=>v===false):2;
+  const wi=wrongIdx>=0?wrongIdx:2;
+  const stars=starsFor(ok,6);
+  return `<div class="t-pad">${tabletTop("Домашняя работа")}
+    <div class="center" style="margin-top:20px">
+      <div style="font-size:50px">🎉</div>
+      ${starsHTML(stars,true)}
+      <h1 class="kid" style="margin-top:6px">Решено верно: ${ok} из 6</h1>
+      <div class="sub">${stars===3?"Отличная работа!":stars===2?"Хорошо! Есть пара ошибок — давай разберём":"Давай разберём ошибки вместе"}</div>
+      <div class="sub" style="font-size:12px">Учитель утром увидит твой результат</div>
+    </div>
+    ${ok<6?`<div class="bigcard" style="max-width:640px;margin:18px auto 0">
+      <div class="task-num">Разбор ошибки</div>
+      <div class="review-item" style="border-top:none">
+        <span class="ic">✗</span>
+        <div><b>${HOMEWORK[wi].q}</b><br>
+        Правильно: <span class="ok-ans">${HOMEWORK[wi].opts[HOMEWORK[wi].ok]}</span><br>
+        <span class="sub">Подсказка: проверь себя умножением — и помни, что остаток меньше делителя</span></div>
+      </div>
+    </div>`:""}
+    <div class="center" style="margin-top:18px"><button class="btn primary" onclick="go('s1')">На главную</button></div>`;
+}
+
+/* ----- S17 my progress (tablet) ----- */
+function s17(){
+  const missed=TOPICS.filter(t=>t.missed);
+  return `<div class="t-pad">${tabletTop("Мой прогресс")}
+    <div class="home-stack">
+      <div>
+        <div class="hb-label" style="display:flex;justify-content:space-between;align-items:center">
+          <span>📚 Мои уроки</span>
+          <span style="font-weight:600;text-transform:none;letter-spacing:0">${phaseLvl>=2?"★ — за домашку":"✓ — ДЗ сдано"}</span>
+        </div>
+        <div class="bigcard" style="padding:18px 22px">
+          <div class="trail">${TOPICS.map(t=>`
+            <div class="tnode ${t.cur?"cur":""} ${t.locked?"locked":""} ${t.missed?"missed":""}">
+              <div class="nm">${t.nm}</div>
+              <div class="st">${t.cur?"Учим сейчас":t.locked?"Откроется дальше":t.missed?"Домашка не сдана":"Пройдено"}</div>
+              <span class="stars">${t.cur?"✏️":t.locked?"🔒":t.missed?'<span class="dim-ic">📥</span>':(phaseLvl>=2?starsHTML(t.stars):'<span style="color:var(--green);font-weight:800">✓</span>')}</span>
+            </div>`).join("")}</div>
+        </div>
+      </div>
+      <div>
+        <div class="hb-label">📥 Пропущенные домашки</div>
+        <div class="bigcard" style="padding:18px 22px">
+          ${missed.length
+            ?missed.map(t=>`
+              <div class="hwlist-item">
+                <div><div class="nm">${t.nm}</div><div class="why">${t.why}</div></div>
+                <button class="btn soft" onclick="toast('Откроем задания урока 79 — без спешки, это не на оценку')">Догнать</button>
+              </div>`).join("")
+            :`<div class="pmeta" style="padding:6px 0">Пропущенных домашек нет — молодец! 🎉</div>`}
+        </div>
+      </div>
     </div></div>`;
 }
 
