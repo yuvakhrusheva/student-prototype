@@ -179,6 +179,11 @@
   .cam-actions{display:flex;gap:14px;justify-content:center;margin-top:20px}
   .shutter{width:64px;height:64px;border-radius:50%;background:#fff;border:5px solid var(--gray);transition:.12s}
   .shutter:hover{transform:scale(1.06);border-color:var(--accent)}
+  /* photo versions history (несколько фото на одно задание) */
+  .photo-hist{display:flex;flex-direction:column;gap:8px;width:100%;max-width:340px;margin:6px auto 2px}
+  .ph-item{display:flex;align-items:center;gap:10px;background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:9px 13px}
+  .ph-thumb{width:34px;height:34px;border-radius:8px;background:var(--surface-2,#f2eefb);display:grid;place-items:center;font-size:17px;flex-shrink:0}
+  .ph-meta{font-weight:700;font-size:13.5px}
 
   /* stuck */
   .stuck-card{max-width:560px;margin:40px auto 0}
@@ -264,6 +269,22 @@
   .hw-stars .dim{color:var(--line)}
   .big-stars{font-size:42px;letter-spacing:5px;color:#F5B301;margin:2px 0}
   .big-stars .dim{color:var(--line)}
+
+  /* ===== Lesson review (read-only «режим просмотра») ===== */
+  .tnode.rev-link{cursor:pointer;transition:.12s}
+  .tnode.rev-link:hover{border-color:var(--accent);box-shadow:0 4px 14px rgba(16,24,40,.07)}
+  .rev-wrap{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;max-width:980px;margin:0 auto;width:100%}
+  .rev-sec{margin-top:14px}
+  .rev-sec:first-child{margin-top:0}
+  .rev-sec-h{font-weight:800;font-size:12.5px;letter-spacing:.03em;color:var(--muted);text-transform:uppercase;margin-bottom:7px}
+  .rev-row{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
+  .rev-row:first-child{border-top:none}
+  .rev-row .ic{font-size:16px;flex-shrink:0;line-height:1.45;font-weight:800}
+  .rev-d{flex:1;min-width:0}
+  .rev-q{font-weight:700;font-size:14.5px}
+  .rev-a{font-size:13px;color:var(--muted);margin-top:2px}
+  .ok-ans{color:var(--green);font-weight:700}
+  .bad-ans{color:var(--coral);font-weight:700}
 
   /* stub screens */
   .stub{max-width:620px;margin:50px auto;text-align:center}
@@ -377,6 +398,7 @@
 /* ================= screens registry ================= */
 const SCREENS=[
  {id:"s1", group:"В классе · планшет", ic:"⌂", nm:"S1 · Главная · планшет", dev:"tablet", phase:1},
+ {id:"s1b", ic:"▶", nm:"S1 → Урок начался", dev:"tablet", phase:1},
  {id:"s2", ic:"⚡", nm:"S2 · Разминка", dev:"tablet", phase:1},
  {id:"s3", ic:"▶", nm:"S3 · Объяснение", dev:"tablet", phase:1},
  {id:"s4", ic:"✎", nm:"S4 · Практика", dev:"tablet", phase:1},
@@ -387,6 +409,7 @@ const SCREENS=[
  {id:"s15", group:"Дома · планшет", ic:"✎", nm:"S15 · Домашка · планшет", dev:"tablet", phase:1},
  {id:"s16", ic:"✓", nm:"S16 · Домашка сдана · планшет", dev:"tablet", phase:1},
  {id:"s17", ic:"⚑", nm:"S17 · Мой прогресс · планшет", dev:"tablet", phase:1},
+ {id:"s18", ic:"👁", nm:"S18 · Урок · просмотр", dev:"tablet", phase:1},
  {id:"s9", group:"Дома · мобильный", ic:"⌂", nm:"S9 · Главная · телефон", dev:"phone", phase:1},
  {id:"s10", ic:"✎", nm:"S10 · Домашка", dev:"phone", phase:1},
  {id:"s11", ic:"✓", nm:"S11 · Домашка сдана", dev:"phone", phase:1},
@@ -466,7 +489,8 @@ function toast(m){const t=document.getElementById("toast");t.textContent=m;t.cla
 
 /* ================= demo bar (teacher-signal simulation) ================= */
 const DEMO={
- s1:[{l:"▶ Учитель нажал «Начать урок»",f:()=>{toast("Сигнал учителя: урок начался");go('s2')}}],
+ s1:[{l:"▶ Учитель нажал «Начать урок»",f:()=>{toast("Сигнал учителя: урок начался");go('s1b')}}],
+ s1b:[{l:"▶ Учитель начал разминку",f:()=>go('s2')}],
  s2:[{l:"▶ Учитель: «Показать ответы»",f:()=>{if(st.ansState==null){toast("Сначала выбери ответ на планшете");return;}st.wReveal=true;render()}},{l:"▶ Учитель начал объяснение",f:()=>go('s3')}],
  s3:[
    {l:"▶ Учитель перелистнул слайд",f:()=>{st.slide=(st.slide+1)%3;render()}},
@@ -480,11 +504,11 @@ const DEMO={
  s7:[{l:"▶ Учитель завершил урок и выдал ДЗ",f:()=>go('s8')}],
  s8:[{l:"📱 Вечером дома: открыть телефон",f:()=>go('s9')}],
  s9:[],s10:[],s11:[],s12:[],s13:[],s14:[],
- s15:[],s16:[],s17:[],
+ s15:[],s16:[],s17:[],s18:[],
 };
 function demoBar(){
   const list=DEMO[cur]||[];
-  const note={s1:"Кнопки с пунктиром — симуляция событий вне планшета (действия учителя)",s2:"Распределение по классу появляется по сигналу учителя «Показать ответы»",s3:"Презентация — на доске; учитель открывает фронтальные задания на планшет по одному",s15:"Домашку ученик решает сам, на планшете — без сигналов учителя"}[cur]||"";
+  const note={s1:"Кнопки с пунктиром — симуляция событий вне планшета (действия учителя)",s1b:"Планшет ждёт: разминку запускает учитель отдельным сигналом",s2:"Распределение по классу появляется по сигналу учителя «Показать ответы»",s3:"Презентация — на доске; учитель открывает фронтальные задания на планшет по одному",s15:"Домашку ученик решает сам, на планшете — без сигналов учителя"}[cur]||"";
   document.getElementById("demoBar").innerHTML=
     `<span class="lbl">Демо</span>`+
     list.map((d,i)=>`<button class="demo-btn" onclick="DEMO['${cur}'][${i}].f()">${d.l}</button>`).join("")+
@@ -498,9 +522,10 @@ const initState=()=>({
   slide:0,
   exTask:null, exAns:null, exReveal:false,
   prac:0, pracOk:0, ansState:null, stuck:false, wrongTries:0,
-  camStep:0,
+  camStep:0, photos:[],
   refl:null, reflStep:"emoji", reflCrit:{}, reflSent:false,
   hq:0, hdone:[], hwFinished:false,
+  reviewLesson:null,
 });
 let st=initState();
 function resetAll(){st=initState();toast("Сценарий сброшен");render();}
@@ -570,13 +595,25 @@ const TOPICS=[
  {nm:"Деление многозначных чисел", locked:true},
  {nm:"Дроби: знакомство", locked:true},
 ];
+// Запись того, как ученик прошёл урок — для режима просмотра (мок; один набор на все уроки)
+const REVIEW={
+ warmup:[0,1,0],                       // выбранные варианты по WARMUP (Q3 — ошибка) → 2 из 3
+ practice:[                            // как решена практика
+   {vals:["4","2"], ok:true},
+   {vals:["4","3"], ok:true},
+   {written:true},                     // письменная — решена в тетради, фото отправлено
+ ],
+ reflEmoji:2,                          // 🙂 Понравилось (Ф2)
+ reflCrit:[1,1,0],                     // самооценка по критериям (Ф2)
+ homework:[0,0,1,0,1,1],               // выбранные варианты по HOMEWORK (Q6 — ошибка) → 5 из 6
+};
 
 /* ================= render ================= */
 function render(){
   demoBar();
   const scr=SCREENS.find(s=>s.id===cur);
   const host=document.getElementById(scr.dev==="tablet"?"tscreen":"pscreen");
-  host.innerHTML=({s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17})[cur]();
+  host.innerHTML=({s1,s1b,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18})[cur]();
   fitContent();
   fitStage();
 }
@@ -632,6 +669,17 @@ function s1(){
           <span class="hc-go">›</span>
         </button>
       </div>
+    </div></div>`;
+}
+
+/* ----- S1b lesson started (приветствие; разминку запускает учитель отдельным сигналом) ----- */
+function s1b(){
+  return `<div class="t-pad">${tabletTop("")}
+    <div class="bigcard center" style="margin-top:80px;gap:12px;max-width:640px;margin-left:auto;margin-right:auto">
+      <div style="font-size:64px">👋</div>
+      <h1 class="kid">Урок начался!</h1>
+      <div class="sub" style="font-size:17px">Урок 84 · Деление с остатком</div>
+      <div class="pulse" style="margin-top:10px"><span class="dot"></span> Отложи планшет — смотрим на учителя</div>
     </div></div>`;
 }
 
@@ -801,21 +849,34 @@ function s5(){
       <button class="shutter" title="Сделать фото" onclick="st.camStep=1;render()"></button>
       <span style="width:130px"></span>
     </div></div>`;
-  if(step===1) return `<div class="t-pad">${tabletTop("Практика")}
+  if(step===1){
+    const more=st.photos.length>0;
+    return `<div class="t-pad">${tabletTop("Практика")}
     <h2 class="kid" style="margin-bottom:14px">Хорошо видно?</h2>
     <div class="cam-stage"><div class="notebook"></div></div>
     <div class="cam-actions">
       <button class="btn ghost" onclick="st.camStep=0;render()">↺ Переснять</button>
-      <button class="btn primary big" onclick="st.camStep=2;render()">Отправить ✓</button>
-    </div></div>`;
+      <button class="btn primary big" onclick="sendPhoto()">${more?"Отправить ещё ✓":"Отправить ✓"}</button>
+    </div>
+    ${more?`<div class="sub" style="text-align:center;margin-top:12px">Уже отправлено фото: ${st.photos.length}. Это добавится как новая версия — старые сохранятся.</div>`:""}
+    </div>`;
+  }
+  const n=st.photos.length;
   return `<div class="t-pad">${tabletTop("Практика")}
-    <div class="bigcard center" style="margin-top:70px;gap:10px;max-width:620px;margin-left:auto;margin-right:auto">
+    <div class="bigcard center" style="margin-top:54px;gap:10px;max-width:620px;margin-left:auto;margin-right:auto">
       <div style="font-size:54px">🌙</div>
-      <h2 class="kid">Фото отправлено!</h2>
-      <div class="sub">Проверим к утру — учитель увидит каждый шаг твоего решения.<br>А ты пока двигайся дальше!</div>
-      <button class="btn primary" onclick="st.prac=3;st.ansState=null;go('s4')">Продолжить практику →</button>
+      <h2 class="kid">${n>1?`Готово · ${n} фото отправлено!`:"Фото отправлено!"}</h2>
+      <div class="sub">Проверим к утру — учитель увидит каждый шаг твоего решения.<br>${n>1?"Все версии сохранены — учитель посмотрит самую свежую.":"Если решение длинное — можно добавить ещё фото."}</div>
+      <div class="photo-hist">
+        ${st.photos.map((p,k)=>`<div class="ph-item"><span class="ph-thumb">🖼️</span><span class="ph-meta">Версия ${k+1}${k===n-1?" · последняя":""}</span></div>`).join("")}
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:6px">
+        <button class="btn ghost" onclick="st.camStep=0;render()">📷 Добавить ещё фото</button>
+        <button class="btn primary" onclick="st.prac=3;st.ansState=null;go('s4')">Продолжить практику →</button>
+      </div>
     </div></div>`;
 }
+function sendPhoto(){st.photos.push({v:st.photos.length+1});st.camStep=2;render();}
 
 /* ----- S6 stuck ----- */
 function s6(){
@@ -984,12 +1045,14 @@ function s17(){
           <span style="font-weight:600;text-transform:none;letter-spacing:0">${phaseLvl>=2?"★ — за домашку":"✓ — ДЗ сдано"}</span>
         </div>
         <div class="bigcard" style="padding:18px 22px">
-          <div class="trail">${TOPICS.map(t=>`
-            <div class="tnode ${t.cur?"cur":""} ${t.locked?"locked":""} ${t.missed?"missed":""}">
+          <div class="trail">${TOPICS.map(t=>{
+            const clickable=!t.locked&&!t.missed;
+            const stTxt=t.cur?"Учим сейчас":t.locked?"Откроется дальше":t.missed?"Домашка не сдана":"Пройдено";
+            return `<div class="tnode ${t.cur?"cur":""} ${t.locked?"locked":""} ${t.missed?"missed":""} ${clickable?"rev-link":""}" ${clickable?`onclick="openReview('${t.nm}')"`:""}>
               <div class="nm">${t.nm}</div>
-              <div class="st">${t.cur?"Учим сейчас":t.locked?"Откроется дальше":t.missed?"Домашка не сдана":"Пройдено"}</div>
+              <div class="st">${stTxt}${clickable?" · нажми, чтобы пересмотреть":""}</div>
               <span class="stars">${t.cur?"✏️":t.locked?"🔒":t.missed?'<span class="dim-ic">📥</span>':(phaseLvl>=2?starsHTML(t.stars):'<span style="color:var(--green);font-weight:800">✓</span>')}</span>
-            </div>`).join("")}</div>
+            </div>`;}).join("")}</div>
         </div>
       </div>
       <div>
@@ -1003,6 +1066,69 @@ function s17(){
               </div>`).join("")
             :`<div class="pmeta" style="padding:6px 0">Пропущенных домашек нет — молодец! 🎉</div>`}
         </div>
+      </div>
+    </div></div>`;
+}
+
+/* ----- S18 lesson review (read-only «режим просмотра») -----
+   Вход: тап по пройденному уроку в «Мой прогресс» (S17). Показывает, как ученик
+   прошёл и классную, и домашнюю работу. Ф1 — разминка + практика; Ф2 — полный
+   повтор всех фаз (добавляются объяснение и рефлексия). Только просмотр. */
+function openReview(name){st.reviewLesson=name;go('s18');}
+function s18(){
+  const lesson=st.reviewLesson||"Деление с остатком";
+  const full=phaseLvl>=2;
+  const icOk=v=>v===true?'<span class="ic" style="color:var(--green)">✓</span>'
+    :v===false?'<span class="ic" style="color:var(--coral)">✗</span>'
+    :'<span class="ic" style="color:var(--muted)">•</span>';
+  const revRow=(v,q,a)=>`<div class="rev-row">${icOk(v)}<div class="rev-d"><div class="rev-q">${q}</div><div class="rev-a">${a}</div></div></div>`;
+
+  // ----- Классная работа -----
+  const wuOk=WARMUP.filter((w,k)=>REVIEW.warmup[k]===w.ok).length;
+  const warmup=WARMUP.map((w,k)=>{
+    const pick=REVIEW.warmup[k], ok=pick===w.ok;
+    return revRow(ok, w.q, `Твой ответ: <b class="${ok?'ok-ans':'bad-ans'}">${w.opts[pick]}</b>${ok?'':` · верно: <b class="ok-ans">${w.opts[w.ok]}</b>`}`);
+  }).join("");
+  const practice=PRACTICE.map((t,k)=>{
+    const r=REVIEW.practice[k];
+    if(r.written) return revRow(null, `Задача ${k+1} · письменная`, `📷 Решена в тетради — фото отправлено учителю`);
+    const vals=t.fields.map((f,i)=>`${f.l}: <b class="${r.ok?'ok-ans':'bad-ans'}">${r.vals[i]}</b>`).join(" · ");
+    return revRow(r.ok, `Задача ${k+1}`, vals);
+  }).join("");
+  // Ф2-only: объяснение и рефлексия
+  const explain=full?`<div class="rev-sec"><div class="rev-sec-h">▶ Объяснение</div>
+    ${SLIDES.map((s,k)=>revRow(null, `Слайд ${k+1}`, s.t)).join("")}</div>`:"";
+  const refl=full?`<div class="rev-sec"><div class="rev-sec-h">☺ Рефлексия</div>
+    ${revRow(null, "Как тебе урок", `<b>${REFLEMOJIS[REVIEW.reflEmoji][0]} ${REFLEMOJIS[REVIEW.reflEmoji][1]}</b>`)}
+    ${REFLCRIT.map((c,i)=>revRow(null, c, `<b>${CRITLEVELS[REVIEW.reflCrit[i]][0]} ${CRITLEVELS[REVIEW.reflCrit[i]][1]}</b>`)).join("")}</div>`:"";
+
+  // ----- Домашняя работа -----
+  const hwOk=HOMEWORK.filter((h,k)=>REVIEW.homework[k]===h.ok).length;
+  const homework=HOMEWORK.map((h,k)=>{
+    const pick=REVIEW.homework[k], ok=pick===h.ok;
+    return revRow(ok, h.q, `Твой ответ: <b class="${ok?'ok-ans':'bad-ans'}">${h.opts[pick]}</b>${ok?'':` · верно: <b class="ok-ans">${h.opts[h.ok]}</b>`}`);
+  }).join("");
+
+  return `<div class="t-pad">${tabletTop("")}
+    <div class="prac-top">
+      <button class="btn ghost" style="padding:8px 14px" onclick="go('s17')">← Назад</button>
+      <span class="pill" style="background:var(--surface-2)">👁 Режим просмотра</span>
+      <span class="prac-prog">Так ты прошёл урок · только смотрим, ничего не меняем</span>
+    </div>
+    <h2 class="kid" style="margin:6px 0 10px">${lesson}</h2>
+    <div class="rev-wrap">
+      <div>
+        <div class="hb-label">📚 Классная работа</div>
+        <div class="bigcard" style="padding:14px 20px">
+          <div class="rev-sec"><div class="rev-sec-h">⚡ Разминка · ${wuOk} из ${WARMUP.length} верно</div>${warmup}</div>
+          ${explain}
+          <div class="rev-sec"><div class="rev-sec-h">✎ Практика</div>${practice}</div>
+          ${refl}
+        </div>
+      </div>
+      <div>
+        <div class="hb-label">📒 Домашняя работа · ${hwOk} из ${HOMEWORK.length} верно</div>
+        <div class="bigcard" style="padding:14px 20px">${homework}</div>
       </div>
     </div></div>`;
 }
