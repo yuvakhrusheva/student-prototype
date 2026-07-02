@@ -342,6 +342,27 @@
   .crit-opt.sel.l1{border-color:var(--blue);background:var(--blue-soft);color:var(--blue)}
   .crit-opt.sel.l2{border-color:var(--green);background:var(--green-soft);color:var(--green)}
 
+  /* ===== МСО (контрольная работа) ===== */
+  .mso-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+  .mso-count{font-weight:700;color:var(--muted);font-size:13px}
+  .mso-timer{display:inline-flex;align-items:center;gap:8px;background:var(--amber-soft);color:#B9871F;border-radius:999px;padding:7px 16px;font-weight:800;font-size:14px}
+  .mso-timer .dot{width:9px;height:9px;border-radius:50%;background:var(--amber);animation:pl 1.2s infinite}
+  .tq-row{display:flex;gap:9px;justify-content:center;margin-bottom:16px;flex-wrap:wrap}
+  .tq{width:46px;height:46px;border-radius:13px;border:2.5px solid var(--line);background:var(--surface);font-weight:800;font-size:16px;color:var(--muted);transition:.12s;position:relative}
+  .tq:hover{border-color:var(--accent)}
+  .tq.ans{background:var(--accent);border-color:var(--accent);color:#fff}
+  .tq.cur{box-shadow:0 0 0 3.5px var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+  .tq.ans.cur{color:#fff}
+  .pts-pill{display:inline-block;background:var(--blue-soft);color:var(--blue);font-weight:800;font-size:11.5px;padding:3px 10px;border-radius:999px}
+  .mso-saved{display:inline-flex;align-items:center;gap:8px;background:var(--surface-2);color:var(--accent);border-radius:12px;padding:9px 16px;font-weight:700;font-size:13px}
+  .mso-navrow{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:18px}
+  .mso-finish{margin-left:0;border-color:var(--line);color:var(--muted);font-size:13px;padding:9px 18px}
+  .mso-finish:hover{border-color:var(--coral);color:var(--coral);background:var(--coral-soft)}
+  /* модалка подтверждения */
+  .mso-overlay{position:absolute;inset:0;background:rgba(16,24,40,.45);display:flex;align-items:center;justify-content:center;z-index:20;border-radius:14px}
+  .mso-modal{background:var(--surface);border-radius:22px;padding:30px 34px;max-width:520px;text-align:center;box-shadow:0 24px 60px rgba(16,24,40,.35)}
+  .mso-modal .btns{display:flex;gap:12px;justify-content:center;margin-top:20px;flex-wrap:wrap}
+
   /* ===== Development-phase switcher (Фаза 1 / Фаза 2 / Финал) ===== */
   .phase-switch{display:flex;align-items:center;gap:8px}
   .phase-switch .ps-lbl{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
@@ -411,6 +432,9 @@ const SCREENS=[
  {id:"s6", ic:"✋", nm:"S6 · «Не получается»", dev:"tablet", phase:1},
  {id:"s7", ic:"☺", nm:"S7 · Рефлексия", dev:"tablet", phase:1},
  {id:"s8", ic:"★", nm:"S8 · Урок завершён", dev:"tablet", phase:1},
+ {id:"m1", group:"Контрольная (МСО) · планшет", ic:"📝", nm:"M1 · Ожидание старта", dev:"tablet", phase:2},
+ {id:"m2", ic:"✎", nm:"M2 · Задание теста", dev:"tablet", phase:2},
+ {id:"m3", ic:"🏁", nm:"M3 · Тест завершён", dev:"tablet", phase:2},
  {id:"s15", group:"Дома · планшет", ic:"✎", nm:"S15 · Домашка · планшет", dev:"tablet", phase:1},
  {id:"s16", ic:"✓", nm:"S16 · Домашка сдана · планшет", dev:"tablet", phase:1},
  {id:"s17", ic:"⚑", nm:"S17 · Мой прогресс · планшет", dev:"tablet", phase:1},
@@ -510,10 +534,17 @@ const DEMO={
  s8:[{l:"📱 Вечером дома: открыть телефон",f:()=>go('s9')}],
  s9:[],s10:[],s11:[],s12:[],s13:[],s14:[],
  s15:[],s16:[],s17:[],s18:[],
+ m1:[{l:"▶ Учитель запустил контрольную",f:()=>{toast("Контрольная началась!");go('m2')}}],
+ m2:[
+   {l:"⚡ Заполнить ответы за ребёнка (демо)",f:()=>{msoAutofill();toast("Ответы заполнены");render()}},
+   {l:"⏱ Осталось 5 минут",f:()=>{st.msoLast5=true;toast("На планшете появился таймер");render()}},
+   {l:"■ Учитель завершил контрольную",f:()=>{toast("Время вышло — ответы зафиксированы");msoFinish('teacher')}},
+ ],
+ m3:[],
 };
 function demoBar(){
   const list=DEMO[cur]||[];
-  const note={s1:"Кнопки с пунктиром — симуляция событий вне планшета (действия учителя)",s1b:"Планшет ждёт: разминку запускает учитель отдельным сигналом",s2:"Распределение по классу появляется по сигналу учителя «Показать ответы»",s3:"Презентация — на доске; учитель открывает фронтальные задания на планшет по одному",s15:"Домашку ученик решает сам, на планшете — без сигналов учителя"}[cur]||"";
+  const note={s1:"Кнопки с пунктиром — симуляция событий вне планшета (действия учителя)",s1b:"Планшет ждёт: разминку запускает учитель отдельным сигналом",s2:"Распределение по классу появляется по сигналу учителя «Показать ответы»",s3:"Презентация — на доске; учитель открывает фронтальные задания на планшет по одному",s15:"Домашку ученик решает сам, на планшете — без сигналов учителя",m1:"У контрольной один этап — без разминки и объяснения; запускает учитель",m2:"Решать можно в любом порядке и менять ответы; верно/неверно не показываем. «Завершить» — в правом верхнем углу, с подтверждением",m3:"Балл и разбор не показываем: письменные задания проверяются позже — результаты сообщит учитель"}[cur]||"";
   document.getElementById("demoBar").innerHTML=
     `<span class="lbl">Демо</span>`+
     list.map((d,i)=>`<button class="demo-btn" onclick="DEMO['${cur}'][${i}].f()">${d.l}</button>`).join("")+
@@ -531,6 +562,8 @@ const initState=()=>({
   refl:null, reflStep:"emoji", reflCrit:{}, reflSent:false,
   hq:0, hdone:[], hwFinished:false,
   reviewLesson:null,
+  // МСО (контрольная): ответы по заданиям, свободная навигация, фиксация — при завершении
+  msoTask:0, msoAns:{}, msoLast5:false, msoDone:false, msoEndBy:null, msoConfirm:false,
 });
 let st=initState();
 function resetAll(){st=initState();toast("Сценарий сброшен");render();}
@@ -570,6 +603,15 @@ const HOMEWORK=[
  {q:"19 ÷ 2 = ?", opts:["9, остаток 1","8, остаток 3","9, остаток 0"], ok:0},
  {q:"44 ÷ 6 = ?", opts:["6, остаток 8","7, остаток 2","8, остаток 4"], ok:1},
  {q:"61 ÷ 10 = ?", opts:["6, остаток 1","5, остаток 11","6, остаток 0"], ok:0},
+];
+// МСО (контрольная работа): баллы за задания разные; №5 — письменное, по критериям
+const MSO=[
+ {type:"choice", q:"52 ÷ 7 = ?", opts:["7, остаток 3","6, остаток 10","8, остаток 4"], ok:0, pts:1},
+ {type:"choice", q:"Какой самый большой остаток может получиться при делении на 9?", opts:["9","8","1"], ok:1, pts:1},
+ {type:"input", q:"У Мурада 43 наклейки. Он раздаёт их друзьям по 5 штук. Скольким друзьям хватит наклеек и сколько наклеек останется у Мурада?", fields:[{l:"Друзьям",a:8},{l:"Останется",a:3}], pts:2},
+ {type:"input", q:"В лифт помещается 6 человек. Сколько раз лифт должен подняться, чтобы перевезти 27 человек?", fields:[{l:"Подъёмов",a:5}], pts:2},
+ {type:"written", q:"Реши задачу и запиши решение по шагам: в театр едут 94 ученика на автобусах по 12 мест. Сколько автобусов нужно заказать? Объясни ответ.", pts:3,
+  crit:["Верно выбрано действие — деление с остатком","Верно найдены частное и остаток","Дан ответ с учётом остатка (8 автобусов)"]},
 ];
 const FEEDBACK={
   topic:"Деление с остатком",
@@ -618,7 +660,7 @@ function render(){
   demoBar();
   const scr=SCREENS.find(s=>s.id===cur);
   const host=document.getElementById(scr.dev==="tablet"?"tscreen":"pscreen");
-  host.innerHTML=({s1,s1b,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18})[cur]();
+  host.innerHTML=({s1,s1b,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,m1,m2,m3})[cur]();
   fitContent();
   fitStage();
 }
@@ -974,6 +1016,117 @@ function s8(){
         <span class="go">→</span>
       </button>
       <div class="sub" style="margin-top:10px">Нажми, чтобы перейти к домашке</div>
+    </div></div>`;
+}
+
+/* ================= МСО · контрольная работа (планшет) =================
+   Отличия от обычного урока: один этап (сама контрольная), задания решаются
+   в любом порядке, ответы можно менять, верно/неверно не показываем — ни в
+   процессе, ни после. Ответы фиксируются при завершении: сам ребёнок
+   («Завершить» в правом верхнем углу + подтверждение) или учитель
+   (авто-фиксация, «время вышло»). Балл ребёнку не показываем: письменные
+   задания проверяются позже — результаты сообщит учитель на следующем уроке.
+   Таймер ребёнку показываем только в последние 5 минут. */
+
+const msoAnswered=(i)=>{
+  const t=MSO[i], a=st.msoAns[i];
+  if(!a) return false;
+  if(t.type==="choice") return a.k!=null;
+  if(t.type==="input") return t.fields.every((_,j)=>a.vals&&a.vals[j]!=null&&String(a.vals[j]).trim()!=="");
+  return !!a.photo;
+};
+const msoAnsCount=()=>MSO.reduce((n,_,i)=>n+(msoAnswered(i)?1:0),0);
+const msoTimer=()=>st.msoLast5?`<span class="mso-timer"><span class="dot"></span>⏱ Осталось 4:37</span>`:"";
+const msoHead=()=>`<div class="mso-head">
+   <span class="pill accent">📝 Контрольная работа</span>
+   <span class="mso-count">Отвечено: ${msoAnsCount()} из ${MSO.length}</span>
+   <span style="margin-left:auto"></span>${msoTimer()}
+   <button class="btn ghost mso-finish" onclick="st.msoConfirm=true;render()">Завершить</button>
+ </div>`;
+
+/* ----- M1 ожидание старта ----- */
+function m1(){
+  return `<div class="t-pad">${tabletTop("")}
+    <div class="bigcard center" style="margin-top:70px;gap:12px;max-width:680px;margin-left:auto;margin-right:auto">
+      <div style="font-size:60px">📝</div>
+      <h1 class="kid">Сегодня — контрольная работа</h1>
+      <div class="sub" style="font-size:16px">Деление с остатком · ${MSO.length} заданий</div>
+      <div class="sub" style="max-width:480px">Решай в любом порядке и не спеши: пока не завершишь тест, любой ответ можно поменять.</div>
+      <div class="pulse" style="margin-top:8px"><span class="dot"></span> Ждём, когда учитель начнёт</div>
+    </div></div>`;
+}
+
+/* ----- M2 задание теста ----- */
+function m2(){
+  if(st.msoDone) return m3();
+  const i=st.msoTask, t=MSO[i], a=st.msoAns[i]||{};
+  const chips=MSO.map((_,k)=>`<button class="tq ${msoAnswered(k)?"ans":""} ${k===i?"cur":""}" onclick="msoGoto(${k})">${k+1}</button>`).join("");
+  let body="";
+  if(t.type==="choice"){
+    body=`<div class="question" style="margin:10px 0 20px">${t.q}</div>
+      <div class="opts">${t.opts.map((o,k)=>`<button class="opt ${a.k===k?"sel":""}" onclick="msoPick(${k})">${o}</button>`).join("")}</div>`;
+  }else if(t.type==="input"){
+    body=`<div class="task-card">
+      <div class="task-text">${t.q}</div>
+      <div class="answer-row">${t.fields.map((f,k)=>`<div class="ans-field"><label>${f.l}</label><input id="mf${k}" inputmode="numeric" maxlength="3" value="${a.vals&&a.vals[k]!=null?a.vals[k]:""}" oninput="msoVal(${i},${k},this.value)"></div>`).join("")}</div>
+    </div>`;
+  }else{
+    body=`<div class="task-card">
+      <div class="task-text">${t.q}</div>
+      <div class="written-banner"><span class="ic">📓</span> Реши в тетради и сфотографируй решение — его оценят по шагам</div>
+      <div class="task-foot">${a.photo
+        ?`<span class="mso-saved">🖼️ Фото решения приложено</span><button class="btn ghost" onclick="st.msoAns[${i}]={photo:true};st.camStep=0;toast('В прототипе камера — как в практике (S5)');render()">↺ Переснять</button>`
+        :`<button class="btn primary" onclick="st.msoAns[${i}]={photo:true};render()">📷 Сфотографировать решение</button>`}</div>
+    </div>`;
+  }
+  // подтверждение завершения — по кнопке «Завершить» в правом верхнем углу
+  const empty=MSO.map((_,k)=>k).filter(k=>!msoAnswered(k));
+  const modal=!st.msoConfirm?"":`<div class="mso-overlay" onclick="st.msoConfirm=false;render()">
+    <div class="mso-modal" onclick="event.stopPropagation()">
+      <div style="font-size:44px;margin-bottom:8px">${empty.length?"🤔":"🏁"}</div>
+      ${empty.length
+        ?`<h2 class="kid">На ${empty.length} ${empty.length===1?"задание не отправлен ответ":(empty.length<5?"задания":"заданий")+" не отправлены ответы"}</h2>
+           <div class="sub" style="margin-top:8px">Ты уверен, что хочешь завершить?</div>
+           <div class="btns">
+             <button class="btn primary" onclick="st.msoConfirm=false;msoGoto(${empty[0]})">← Вернуться к контрольной</button>
+             <button class="btn ghost" onclick="msoFinish('self')">Завершить</button>
+           </div>`
+        :`<h2 class="kid">Ты уверен, что хочешь завершить?</h2>
+           <div class="sub" style="margin-top:8px">После завершения ответы изменить нельзя.</div>
+           <div class="btns">
+             <button class="btn ghost" onclick="st.msoConfirm=false;render()">← Вернуться к контрольной</button>
+             <button class="btn primary" onclick="msoFinish('self')">Завершить</button>
+           </div>`}
+    </div></div>`;
+  return `<div class="t-pad" style="position:relative;min-height:640px">${tabletTop("Контрольная")}${msoHead()}
+    <div class="tq-row">${chips}</div>
+    <div class="center" style="margin-bottom:10px"><span class="pts-pill">${t.pts} ${t.pts===1?"балл":t.pts<5?"балла":"баллов"}${t.type==="written"?" · по критериям":""}</span></div>
+    ${body}
+    <div class="feedback" style="min-height:44px;margin-top:12px">${msoAnswered(i)
+      ?`<span class="mso-saved">✓ Ответ записан · можно изменить, пока тест не завершён</span>`
+      :`<span class="sub">Верно или нет — узнаешь после проверки</span>`}</div>
+    <div class="mso-navrow">
+      <button class="btn ghost" ${i===0?"disabled style='opacity:.4'":""} onclick="msoGoto(${i-1})">← Назад</button>
+      ${i<MSO.length-1?`<button class="btn primary" onclick="msoGoto(${i+1})">Дальше →</button>`:""}
+    </div>
+    ${modal}</div>`;
+}
+function msoGoto(k){if(k<0||k>=MSO.length)return;st.msoTask=k;go('m2');}
+function msoPick(k){st.msoAns[st.msoTask]={k};render();}
+function msoVal(i,k,v){const a=st.msoAns[i]||(st.msoAns[i]={});(a.vals||(a.vals=[]))[k]=v;}
+function msoFinish(by){st.msoDone=true;st.msoEndBy=by;st.msoConfirm=false;go('m3');}
+function msoAutofill(){st.msoAns={0:{k:0},1:{k:2},2:{vals:["8","3"]},3:{vals:["5"]},4:{photo:true}};}
+
+/* ----- M3 тест завершён (без балла и разбора: письменные проверяются позже) ----- */
+function m3(){
+  const byTeacher=st.msoEndBy==="teacher";
+  return `<div class="t-pad">${tabletTop("")}
+    <div class="bigcard center" style="margin-top:70px;gap:12px;max-width:680px;margin-left:auto;margin-right:auto">
+      <div style="font-size:60px">${byTeacher?"⏰":"🎉"}</div>
+      <h1 class="kid">${byTeacher?"Время вышло!":"Тест сдан!"}</h1>
+      ${byTeacher?`<div class="sub" style="font-size:15px">Учитель завершил контрольную — твои ответы отправились сами</div>`:`<div class="sub" style="font-size:15px">Твои ответы отправлены · отвечено: ${msoAnsCount()} из ${MSO.length}</div>`}
+      <div class="sub" style="font-size:16px;font-weight:700;color:var(--ink)">Результаты учитель сообщит на следующем уроке</div>
+      <div class="sub" style="max-width:440px">Ты молодец, что старался! Письменное решение учитель посмотрит по шагам.</div>
     </div></div>`;
 }
 
