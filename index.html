@@ -393,22 +393,30 @@
 <body>
 <div class="app">
   <header>
-    <div class="logo"><span class="mark"><svg viewBox="0 0 80 92" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 2 H72 V64 H48 L40 88 L32 64 H8 Z" fill="#704DFF"></path><text x="40" y="34" text-anchor="middle" dominant-baseline="central" font-family="Inter, sans-serif" font-weight="700" font-size="44" fill="#fff">A</text></svg></span><span>AI Math · Ученик</span></div>
+    <div class="logo"><span class="mark"><svg viewBox="0 0 80 92" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 2 H72 V64 H48 L40 88 L32 64 H8 Z" fill="#704DFF"></path><text x="40" y="34" text-anchor="middle" dominant-baseline="central" font-family="Inter, sans-serif" font-weight="700" font-size="44" fill="#fff">A</text></svg></span><span>AI Math · <span id="hdrRole"></span></span></div>
     <div class="hdr-ctx">
-      <span class="chip">Айсель Мамедова · 4-А</span>
-      <span class="lesson">Урок 84: Деление с остатком</span>
-      <span>29 мая, чт</span>
+      <span class="chip" id="hdrChip"></span>
+      <span class="lesson" id="hdrLesson"></span>
+      <span id="hdrDate"></span>
     </div>
     <div class="hdr-right">
       <div class="phase-switch">
-        <span class="ps-lbl">Этап</span>
-        <div class="phase-seg">
-          <button data-pl="1" onclick="setPhaseLvl(1)">Фаза 1</button>
-          <button data-pl="2" onclick="setPhaseLvl(2)">Фаза 2</button>
-          <button data-pl="3" class="on" onclick="setPhaseLvl(3)">Финал</button>
+        <span class="ps-lbl" id="hdrLangLbl"></span>
+        <div class="phase-seg" id="langSeg">
+          <button data-lg="az" onclick="setLang('az')">AZ</button>
+          <button data-lg="en" onclick="setLang('en')">EN</button>
+          <button data-lg="ru" onclick="setLang('ru')">RU</button>
         </div>
       </div>
-      <div class="avatar">АМ</div>
+      <div class="phase-switch">
+        <span class="ps-lbl" id="hdrStageLbl"></span>
+        <div class="phase-seg">
+          <button data-pl="1" onclick="setPhaseLvl(1)" id="plBtn1"></button>
+          <button data-pl="2" onclick="setPhaseLvl(2)" id="plBtn2"></button>
+          <button data-pl="3" class="on" onclick="setPhaseLvl(3)" id="plBtn3"></button>
+        </div>
+      </div>
+      <div class="avatar" id="hdrAvatar"></div>
     </div>
   </header>
 
@@ -435,41 +443,43 @@
 <script>
 /* ================= screens registry ================= */
 const SCREENS=[
- {id:"s1", group:"В классе · планшет", ic:"⌂", nm:"S1 · Главная · планшет", dev:"tablet", phase:1},
- {id:"s1b", ic:"▶", nm:"S1 → Урок начался", dev:"tablet", phase:1},
- {id:"s2", ic:"⚡", nm:"S2 · Разминка", dev:"tablet", phase:1},
- {id:"s3", ic:"▶", nm:"S3 · Объяснение", dev:"tablet", phase:1},
- {id:"s4", ic:"✎", nm:"S4 · Практика", dev:"tablet", phase:1},
- {id:"s5", ic:"📷", nm:"S5 · Фото тетради", dev:"tablet", phase:1},
- {id:"s6", ic:"✋", nm:"S6 · «Не получается»", dev:"tablet", phase:1},
- {id:"s7", ic:"☺", nm:"S7 · Рефлексия", dev:"tablet", phase:1},
- {id:"s8", ic:"★", nm:"S8 · Урок завершён", dev:"tablet", phase:1},
- {id:"m1", group:"Контрольная (МСО) · планшет", ic:"📝", nm:"M1 · Ожидание старта", dev:"tablet", phase:2},
- {id:"m2", ic:"✎", nm:"M2 · Задание теста", dev:"tablet", phase:2},
- {id:"m3", ic:"🏁", nm:"M3 · Тест завершён", dev:"tablet", phase:2},
- {id:"s15", group:"Дома · планшет", ic:"✎", nm:"S15 · Домашка · планшет", dev:"tablet", phase:1},
- {id:"s16", ic:"✓", nm:"S16 · Домашка сдана · планшет", dev:"tablet", phase:1},
- {id:"s17", ic:"⚑", nm:"S17 · Мой прогресс · планшет", dev:"tablet", phase:1},
- {id:"s18", ic:"👁", nm:"S18 · Урок · просмотр", dev:"tablet", phase:1},
- {id:"s9", group:"Дома · мобильный", ic:"⌂", nm:"S9 · Главная · телефон", dev:"phone", phase:1},
- {id:"s10", ic:"✎", nm:"S10 · Домашка", dev:"phone", phase:1},
- {id:"s11", ic:"✓", nm:"S11 · Домашка сдана", dev:"phone", phase:1},
- {id:"s12", ic:"⚑", nm:"S12 · Мой прогресс", dev:"phone", phase:1},
- {id:"s13", group:"Скоро", ic:"♺", nm:"S13 · Буферный урок", dev:"tablet", stub:true, phase:2},
- {id:"s14", ic:"◎", nm:"S14 · Диагностика", dev:"tablet", stub:true, phase:2},
+ {id:"s1", grp:"inclass", ic:"⌂", dev:"tablet", phase:1},
+ {id:"s1b", ic:"▶", dev:"tablet", phase:1},
+ {id:"s2", ic:"⚡", dev:"tablet", phase:1},
+ {id:"s3", ic:"▶", dev:"tablet", phase:1},
+ {id:"s4", ic:"✎", dev:"tablet", phase:1},
+ {id:"s5", ic:"📷", dev:"tablet", phase:1},
+ {id:"s6", ic:"✋", dev:"tablet", phase:1},
+ {id:"s7", ic:"☺", dev:"tablet", phase:1},
+ {id:"s8", ic:"★", dev:"tablet", phase:1},
+ {id:"m1", grp:"mso", ic:"📝", dev:"tablet", phase:2},
+ {id:"m2", ic:"✎", dev:"tablet", phase:2},
+ {id:"m3", ic:"🏁", dev:"tablet", phase:2},
+ {id:"s15", grp:"homeTablet", ic:"✎", dev:"tablet", phase:1},
+ {id:"s16", ic:"✓", dev:"tablet", phase:1},
+ {id:"s17", ic:"⚑", dev:"tablet", phase:1},
+ {id:"s18", ic:"👁", dev:"tablet", phase:1},
+ {id:"s9", grp:"homePhone", ic:"⌂", dev:"phone", phase:1},
+ {id:"s10", ic:"✎", dev:"phone", phase:1},
+ {id:"s11", ic:"✓", dev:"phone", phase:1},
+ {id:"s12", ic:"⚑", dev:"phone", phase:1},
+ {id:"s13", grp:"soon", ic:"♺", dev:"tablet", stub:true, phase:2},
+ {id:"s14", ic:"◎", dev:"tablet", stub:true, phase:2},
 ];
 let phaseLvl=3;
 let cur="s1";
+let lang="az";   // язык по умолчанию — азербайджанский
+let L, U;        // L = LOCALE[lang] (весь текст), U — алиас для L (сокращение)
 
 /* ================= nav ================= */
 function buildNav(){
   const el=document.getElementById("nav");
   el.innerHTML=SCREENS.map(s=>{
     const ph=s.phase>1?` data-phase="${s.phase}"`:"";
-    return (s.group?`<div class="nav-group"${ph}>${s.group}</div>`:"")+
-    `<button class="nav-item${s.id===cur?" on":""}"${ph} data-s="${s.id}" onclick="go('${s.id}')"><span class="ic">${s.ic}</span><span>${s.nm}</span>${s.stub?'<span class="nav-soon">заглушка</span>':""}</button>`;
+    return (s.grp?`<div class="nav-group"${ph}>${L.navGroup[s.grp]}</div>`:"")+
+    `<button class="nav-item${s.id===cur?" on":""}"${ph} data-s="${s.id}" onclick="go('${s.id}')"><span class="ic">${s.ic}</span><span>${L.nav[s.id]}</span>${s.stub?`<span class="nav-soon">${L.stub}</span>`:""}</button>`;
   }).join("")+
-  `<div class="nav-spacer"></div><div class="nav-foot">Прототип · мок-данные<br>Урок и класс — те же, что в прототипе учителя</div>`;
+  `<div class="nav-spacer"></div><div class="nav-foot">${L.navFoot}</div>`;
 }
 function go(id){
   cur=id;
@@ -483,11 +493,36 @@ function go(id){
 function setPhaseLvl(n){
   phaseLvl=n;
   document.body.dataset.phase=n;
-  document.querySelectorAll(".phase-seg button").forEach(b=>b.classList.toggle("on",+b.dataset.pl===n));
+  document.querySelectorAll(".phase-seg button[data-pl]").forEach(b=>b.classList.toggle("on",+b.dataset.pl===n));
   // если текущий экран ещё не существует в этой фазе — уводим на первый доступный
   const scr=SCREENS.find(s=>s.id===cur);
   if(scr && (scr.phase||1)>n){ go(SCREENS.find(s=>(s.phase||1)<=n).id); return; }
   render();
+}
+
+/* ---------- Language switcher (Azərbaycan / English / Русский) ---------- */
+function setLang(code){
+  lang=code; L=LOCALE[code]; U=L;
+  document.documentElement.lang=L.html;
+  document.querySelectorAll("#langSeg button").forEach(b=>b.classList.toggle("on",b.dataset.lg===code));
+  rebuildData();     // пересобрать контент (задачи, слайды и т.п.) на новом языке
+  applyChrome();     // шапка, лейблы переключателей
+  buildNav();        // навигация
+  render();          // текущий экран + демо-бар
+}
+
+/* заполняем статичную «обвязку» (шапку и лейблы) текущим языком */
+function applyChrome(){
+  document.getElementById("hdrRole").textContent=L.role;
+  document.getElementById("hdrChip").textContent=L.chip;
+  document.getElementById("hdrLesson").textContent=L.lessonHdr;
+  document.getElementById("hdrDate").textContent=L.dateHdr;
+  document.getElementById("hdrAvatar").textContent=L.avatarInit;
+  document.getElementById("hdrLangLbl").textContent=L.langLabel;
+  document.getElementById("hdrStageLbl").textContent=L.stageLabel;
+  document.getElementById("plBtn1").textContent=L.ph1;
+  document.getElementById("plBtn2").textContent=L.ph2;
+  document.getElementById("plBtn3").textContent=L.ph3;
 }
 
 /* scale a screen's content so it fully fits inside the device frame — no inner scroll */
@@ -530,37 +565,37 @@ function toast(m){const t=document.getElementById("toast");t.textContent=m;t.cla
 
 /* ================= demo bar (teacher-signal simulation) ================= */
 const DEMO={
- s1:[{l:"▶ Учитель нажал «Начать урок»",f:()=>{toast("Сигнал учителя: урок начался");go('s1b')}}],
- s1b:[{l:"▶ Учитель начал разминку",f:()=>go('s2')}],
- s2:[{l:"▶ Учитель: «Показать ответы»",f:()=>{if(st.ansState==null){toast("Сначала выбери ответ на планшете");return;}st.wReveal=true;render()}},{l:"▶ Учитель начал объяснение",f:()=>go('s3')}],
+ s1:[{lk:"s1_start",f:()=>{toast(L.toast.signalStart);go('s1b')}}],
+ s1b:[{lk:"s1b_warm",f:()=>go('s2')}],
+ s2:[{lk:"s2_reveal",f:()=>{if(st.ansState==null){toast(L.toast.pickFirst);return;}st.wReveal=true;render()}},{lk:"s2_explain",f:()=>go('s3')}],
  s3:[
-   {l:"▶ Учитель перелистнул слайд",f:()=>{st.slide=(st.slide+1)%3;render()}},
-   {l:"▶ Учитель открыл задание для решения",f:()=>{const n=st.exTask==null?0:st.exTask+1;if(n>=EXTASK.length){toast("Все задания этапа открыты");return;}st.exTask=n;st.exAns=null;st.exReveal=false;render()}},
-   {l:"▶ Учитель: «Показать ответы»",f:()=>{if(st.exTask==null){toast("Учитель ещё не открыл задание");return;}if(st.exAns==null){toast("Сначала выбери ответ");return;}st.exReveal=true;render()}},
-   {l:"▶ Учитель начал практику",f:()=>go('s4')}
+   {lk:"s3_slide",f:()=>{st.slide=(st.slide+1)%3;render()}},
+   {lk:"s3_open",f:()=>{const n=st.exTask==null?0:st.exTask+1;if(n>=EXTASK.length){toast(L.toast.allTasksOpen);return;}st.exTask=n;st.exAns=null;st.exReveal=false;render()}},
+   {lk:"s3_reveal",f:()=>{if(st.exTask==null){toast(L.toast.teacherNotOpen);return;}if(st.exAns==null){toast(L.toast.pickAnswer);return;}st.exReveal=true;render()}},
+   {lk:"s3_practice",f:()=>go('s4')}
  ],
- s4:[{l:"▶ Учитель запустил рефлексию",f:()=>go('s7')}],
+ s4:[{lk:"s4_reflect",f:()=>go('s7')}],
  s5:[],
- s6:[{l:"▶ Учитель подошёл и помог",f:()=>{toast("Учитель помог разобраться");st.stuck=false;go('s4')}}],
- s7:[{l:"▶ Учитель завершил урок и выдал ДЗ",f:()=>go('s8')}],
- s8:[{l:"📱 Вечером дома: открыть телефон",f:()=>go('s9')}],
+ s6:[{lk:"s6_help",f:()=>{toast(L.toast.teacherHelped);st.stuck=false;go('s4')}}],
+ s7:[{lk:"s7_finish",f:()=>go('s8')}],
+ s8:[{lk:"s8_evening",f:()=>go('s9')}],
  s9:[],s10:[],s11:[],s12:[],s13:[],s14:[],
  s15:[],s16:[],s17:[],s18:[],
- m1:[{l:"▶ Учитель запустил контрольную",f:()=>{toast("Контрольная началась!");go('m2')}}],
+ m1:[{lk:"m1_start",f:()=>{toast(L.toast.msoStarted);go('m2')}}],
  m2:[
-   {l:"⚡ Заполнить ответы за ребёнка (демо)",f:()=>{msoAutofill();toast("Ответы заполнены");render()}},
-   {l:"⏱ Осталось 5 минут",f:()=>{st.msoLast5=true;toast("На планшете появился таймер");render()}},
-   {l:"■ Учитель завершил контрольную",f:()=>{toast("Время вышло — ответы зафиксированы");msoFinish('teacher')}},
+   {lk:"m2_fill",f:()=>{msoAutofill();toast(L.toast.msoFilled);render()}},
+   {lk:"m2_5min",f:()=>{st.msoLast5=true;toast(L.toast.msoTimer);render()}},
+   {lk:"m2_finish",f:()=>{toast(L.toast.msoTimeUp);msoFinish('teacher')}},
  ],
  m3:[],
 };
 function demoBar(){
   const list=DEMO[cur]||[];
-  const note={s1:"Кнопки с пунктиром — симуляция событий вне планшета (действия учителя)",s1b:"Планшет ждёт: разминку запускает учитель отдельным сигналом",s2:"Распределение по классу появляется по сигналу учителя «Показать ответы»",s3:"Презентация — на доске; учитель открывает фронтальные задания на планшет по одному",s15:"Домашку ученик решает сам, на планшете — без сигналов учителя",m1:"У контрольной один этап — без разминки и объяснения; запускает учитель",m2:"Решать можно в любом порядке и менять ответы; верно/неверно не показываем. «Завершить» — в правом верхнем углу, с подтверждением",m3:"Балл и разбор не показываем: письменные задания проверяются позже — результаты сообщит учитель"}[cur]||"";
+  const note=(L.note||{})[cur]||"";
   document.getElementById("demoBar").innerHTML=
-    `<span class="lbl">Демо</span>`+
-    list.map((d,i)=>`<button class="demo-btn" onclick="DEMO['${cur}'][${i}].f()">${d.l}</button>`).join("")+
-    `<button class="demo-btn ghost" onclick="resetAll()">⟳ Сбросить сценарий</button>`+
+    `<span class="lbl">${L.demoLabel}</span>`+
+    list.map((d,i)=>`<button class="demo-btn" onclick="DEMO['${cur}'][${i}].f()">${L.demo[d.lk]}</button>`).join("")+
+    `<button class="demo-btn ghost" onclick="resetAll()">${L.demoReset}</button>`+
     (note?`<span class="demo-note">${note}</span>`:"");
 }
 
@@ -578,94 +613,38 @@ const initState=()=>({
   msoTask:0, msoAns:{}, msoLast5:false, msoDone:false, msoEndBy:null, msoConfirm:false,
 });
 let st=initState();
-function resetAll(){st=initState();toast("Сценарий сброшен");render();}
+function resetAll(){st=initState();toast(L.toast.scenarioReset);render();}
 
-/* ================= mock data ================= */
-const WARMUP=[
- {q:"17 ÷ 5 = ?", opts:["3, остаток 2","2, остаток 7","3, остаток 1","4, остаток 0"], ok:0, dist:[19,4,5,2]},
- {q:"23 ÷ 4 = ?", opts:["4, остаток 7","5, остаток 3","6, остаток 1","5, остаток 2"], ok:1, dist:[3,21,4,2]},
- {q:"31 ÷ 6 = ?", opts:["4, остаток 7","6, остаток 0","5, остаток 1","5, остаток 2"], ok:2, dist:[4,2,20,4]},
-];
-const SLIDES=[
- {t:"Деление с остатком", body:`<div class="formula">17 ÷ 5 = 3 (ост. 2)</div><div class="sub" style="font-size:17px">Иногда разделить поровну не получается —<br>и тогда появляется <b>остаток</b></div>`},
- {t:"17 конфет по 5 в пакет", body:`<div class="dots-vis">
-    <div class="dgroup"><i></i><i></i><i></i><i></i><i></i></div>
-    <div class="dgroup"><i></i><i></i><i></i><i></i><i></i></div>
-    <div class="dgroup"><i></i><i></i><i></i><i></i><i></i></div>
-    <div class="dgroup rest"><i></i><i></i></div>
-  </div><div class="sub" style="font-size:17px">3 полных пакета и <b style="color:#B9871F">2 конфеты остались</b></div>`},
- {t:"Главное правило", body:`<div class="formula">остаток &lt; делитель</div><div class="sub" style="font-size:17px">Остаток всегда меньше числа, на которое делим.<br>Если получился больше — можно разделить ещё раз!</div>`},
-];
-// Фронтальные задания этапа объяснения — учитель открывает их по одному
-const EXTASK=[
- {q:"28 ÷ 6 = ?", opts:["4, остаток 4","5, остаток 2","4, остаток 2"], ok:0, dist:[18,5,7]},
- {q:"Может ли остаток при делении на 6 быть равен 6?", opts:["да","нет"], ok:1, dist:[6,24]},
-];
-const PRACTICE=[
- {type:"input", text:"У Лейлы 26 конфет. Она раскладывает их в пакеты по 6 конфет. Сколько получится полных пакетов и сколько конфет останется?",
-  fields:[{l:"Пакетов",a:4},{l:"Останется",a:2}]},
- {type:"input", text:"В коробку помещается 8 машинок. У Тимура 35 машинок. Сколько коробок он заполнит и сколько машинок останется без коробки?",
-  fields:[{l:"Коробок",a:4},{l:"Останется",a:3}]},
- {type:"written", text:"Реши в тетради: 74 ÷ 9. Запиши решение по шагам — проверь себя умножением."},
-];
-const HOMEWORK=[
- {q:"39 ÷ 5 = ?", opts:["7, остаток 4","8, остаток 1","7, остаток 5"], ok:0},
- {q:"25 ÷ 7 = ?", opts:["3, остаток 4","4, остаток 3","3, остаток 5"], ok:0},
- {q:"50 ÷ 8 = ?", opts:["5, остаток 10","6, остаток 2","7, остаток 6"], ok:1},
- {q:"19 ÷ 2 = ?", opts:["9, остаток 1","8, остаток 3","9, остаток 0"], ok:0},
- {q:"44 ÷ 6 = ?", opts:["6, остаток 8","7, остаток 2","8, остаток 4"], ok:1},
- {q:"61 ÷ 10 = ?", opts:["6, остаток 1","5, остаток 11","6, остаток 0"], ok:0},
-];
-// МСО (контрольная работа): баллы за задания разные; №5 — письменное, по критериям
-const MSO=[
- {type:"choice", q:"52 ÷ 7 = ?", opts:["7, остаток 3","6, остаток 10","8, остаток 4"], ok:0, pts:1},
- {type:"choice", q:"Какой самый большой остаток может получиться при делении на 9?", opts:["9","8","1"], ok:1, pts:1},
- {type:"input", q:"У Мурада 43 наклейки. Он раздаёт их друзьям по 5 штук. Скольким друзьям хватит наклеек и сколько наклеек останется у Мурада?", fields:[{l:"Друзьям",a:8},{l:"Останется",a:3}], pts:2},
- {type:"input", q:"В лифт помещается 6 человек. Сколько раз лифт должен подняться, чтобы перевезти 27 человек?", fields:[{l:"Подъёмов",a:5}], pts:2},
- {type:"written", q:"Реши задачу и запиши решение по шагам: в театр едут 94 ученика на автобусах по 12 мест. Сколько автобусов нужно заказать? Объясни ответ.", pts:3,
-  crit:["Верно выбрано действие — деление с остатком","Верно найдены частное и остаток","Дан ответ с учётом остатка (8 автобусов)"]},
-];
-const FEEDBACK={
-  topic:"Деление с остатком",
-  good:"Уверенно находишь, сколько выходит целых групп и какой получается остаток.",
-  grow:"Стоит ещё потренировать проверку умножением — поэтому в домашке есть похожие задачи.",
+/* ================= mock data =================
+   Логика (правильные ответы, распределения, баллы, структура заданий) —
+   ЯЗЫКОНЕЗАВИСИМА и живёт в LOGIC. Текст (условия, варианты, подписи) — в
+   LOCALE[lang]. rebuildData() склеивает их в рабочие массивы при смене языка. */
+const LOGIC={
+  warmup:[{ok:0,dist:[19,4,5,2]},{ok:1,dist:[3,21,4,2]},{ok:2,dist:[4,2,20,4]}],
+  extask:[{ok:0,dist:[18,5,7]},{ok:1,dist:[6,24]}],
+  practice:[{type:"input",fields:[{a:4},{a:2}]},{type:"input",fields:[{a:4},{a:3}]},{type:"written"}],
+  homework:[{ok:0},{ok:0},{ok:1},{ok:0},{ok:1},{ok:0}],
+  mso:[{type:"choice",ok:0,pts:1},{type:"choice",ok:1,pts:1},{type:"input",fields:[{a:8},{a:3}],pts:2},{type:"input",fields:[{a:5}],pts:2},{type:"written",pts:3}],
+  topics:[{stars:3},{stars:2},{stars:3},{missed:true},{cur:true},{locked:true},{locked:true}],
+  // Как ученик прошёл урок — для режима просмотра (мок; один набор на все уроки)
+  review:{warmup:[0,1,0],practice:[{vals:["4","2"],ok:true},{vals:["4","3"],ok:true},{written:true}],reflEmoji:2,reflCrit:[1,1,0],homework:[0,0,1,0,1,1]},
 };
-// Критерии оценивания берутся из плана урока учителя (для темы «Деление с остатком»)
-const REFLCRIT=[
- "Нахожу неполное частное и остаток",
- "Проверяю деление умножением",
- "Помню, что остаток меньше делителя",
-];
-// Трёхуровневая шкала самооценки понимания
-const CRITLEVELS=[
- ["😕","Не понял"],
- ["🙂","Понимаю сам"],
- ["🤩","Понимаю и могу научить другого"],
-];
+// Рабочие массивы контента — пересобираются в rebuildData() под текущий язык
+let WARMUP,SLIDES,EXTASK,PRACTICE,HOMEWORK,MSO,FEEDBACK,REFLCRIT,CRITLEVELS,TOPICS,REVIEW,REFLEMOJIS;
 const starsFor=(ok,total)=>{const r=ok/total;return r>=0.8?3:r>=0.5?2:1;};
 const starsHTML=(n,big)=>`<span class="${big?"big-stars":"hw-stars"}">${"★".repeat(n)}<span class="dim">${"★".repeat(3-n)}</span></span>`;
-// «Мои уроки»: каждый пройденный урок несёт звёзды за свою домашку; пропущенные — с причиной
-const TOPICS=[
- {nm:"Умножение на двузначное число", stars:3},
- {nm:"Площадь прямоугольника", stars:2},
- {nm:"Уравнения с одним неизвестным", stars:3},
- {nm:"Скорость, время, расстояние", missed:true, why:"Урок 79 · 12 мая · была на больничном"},
- {nm:"Деление с остатком", cur:true},
- {nm:"Деление многозначных чисел", locked:true},
- {nm:"Дроби: знакомство", locked:true},
-];
-// Запись того, как ученик прошёл урок — для режима просмотра (мок; один набор на все уроки)
-const REVIEW={
- warmup:[0,1,0],                       // выбранные варианты по WARMUP (Q3 — ошибка) → 2 из 3
- practice:[                            // как решена практика
-   {vals:["4","2"], ok:true},
-   {vals:["4","3"], ok:true},
-   {written:true},                     // письменная — решена в тетради, фото отправлено
- ],
- reflEmoji:2,                          // 🙂 Понравилось (Ф2)
- reflCrit:[1,1,0],                     // самооценка по критериям (Ф2)
- homework:[0,0,1,0,1,1],               // выбранные варианты по HOMEWORK (Q6 — ошибка) → 5 из 6
-};
+function rebuildData(){
+  const c=L;
+  WARMUP=LOGIC.warmup.map((o,i)=>({...o,q:c.warmup[i].q,opts:c.warmup[i].opts}));
+  SLIDES=c.slides;
+  EXTASK=LOGIC.extask.map((o,i)=>({...o,q:c.extask[i].q,opts:c.extask[i].opts}));
+  PRACTICE=LOGIC.practice.map((o,i)=>({...o,text:c.practice[i].text,fields:(o.fields||[]).map((f,j)=>({...f,l:c.practice[i].fields[j].l}))}));
+  HOMEWORK=LOGIC.homework.map((o,i)=>({...o,q:c.homework[i].q,opts:c.homework[i].opts}));
+  MSO=LOGIC.mso.map((o,i)=>{const t=c.mso[i];const m={...o,q:t.q};if(t.opts)m.opts=t.opts;if(o.fields)m.fields=o.fields.map((f,j)=>({...f,l:t.fields[j].l}));if(t.crit)m.crit=t.crit;return m;});
+  FEEDBACK=c.feedback; REFLCRIT=c.reflcrit; CRITLEVELS=c.critlevels; REFLEMOJIS=c.reflemojis;
+  TOPICS=LOGIC.topics.map((o,i)=>({...o,nm:c.topics[i].nm,why:c.topics[i].why}));
+  REVIEW=LOGIC.review;
+}
 
 /* ================= render ================= */
 function render(){
@@ -679,22 +658,22 @@ function render(){
 
 const tabletTop=(phase)=>`
  <div class="t-top">
-   <div class="who"><span class="kid-ava">🦊</span> Айсель</div>
-   <span class="ctx">4-А · Урок 84 · Деление с остатком</span>
+   <div class="who"><span class="kid-ava">🦊</span> ${L.shortName}</div>
+   <span class="ctx">${L.ctxLine}</span>
    <div class="right">${phase?`<span class="pill accent">${phase}</span>`:""}</div>
  </div>`;
 
 const phasebar=(n)=>{
-  const names=["Разминка","Объяснение","Практика","Рефлексия"];
-  return `<div class="phasebar"><span class="nm">${names[n-1]}</span><span class="tag">фаза ${n} из 4</span>${[1,2,3,4].map(i=>`<span class="ph ${i<n?"done":i===n?"cur":""}"></span>`).join("")}</div>`;
+  const names=[L.phWarm,L.phExplain,L.phPractice,L.phReflect];
+  return `<div class="phasebar"><span class="nm">${names[n-1]}</span><span class="tag">${L.phaseOf(n)}</span>${[1,2,3,4].map(i=>`<span class="ph ${i<n?"done":i===n?"cur":""}"></span>`).join("")}</div>`;
 };
 
 /* ----- homework availability state (shared by both home variants) ----- */
 function hwStatus(){
-  if(st.hwFinished) return {label:"Сдано", btn:"Посмотреть"+(phaseLvl>=2?" результат":""), go:"s11", done:true};
+  if(st.hwFinished) return {label:L.hwSubmitted, btn:phaseLvl>=2?L.viewResult:L.viewBase, go:"s11", done:true};
   const solved=st.hdone.length;
-  if(solved>0) return {label:`Решено ${solved} из 6 заданий`, btn:"Продолжить →", go:"s10", done:false};
-  return {label:"Деление с остатком · до завтра, 8:00", btn:"Начать →", go:"s10", done:false};
+  if(solved>0) return {label:L.solvedN(solved), btn:L.btnContinue, go:"s10", done:false};
+  return {label:L.hwNotStarted, btn:L.btnStart, go:"s10", done:false};
 }
 
 /* ----- S1 unified home · tablet (in class): lesson primary + homework ----- */
@@ -702,29 +681,29 @@ function s1(){
   const hw=hwStatus();
   const tgo=hw.done?"s16":"s15"; // планшетный поток домашки (мобильный — s10/s11)
   return `<div class="t-pad">${tabletTop("")}
-    <h1 class="kid" style="text-align:center;margin:4px 0 18px">Привет, Айсель!</h1>
+    <h1 class="kid" style="text-align:center;margin:4px 0 18px">${L.greetName}</h1>
     <div class="home-stack">
       <div>
-        <div class="hb-label">Классная работа</div>
+        <div class="hb-label">${L.hbClasswork}</div>
         <div class="bigcard center" style="padding:28px 32px;gap:8px">
-          <div class="sub">Сегодняшний урок</div>
-          <h2 class="kid">Урок 84 · Деление с остатком</h2>
-          <div class="pulse" style="margin-top:6px"><span class="dot"></span> Урок ещё не начался — ждём учителя</div>
+          <div class="sub">${L.todayLesson}</div>
+          <h2 class="kid">${L.lessonTitleCard}</h2>
+          <div class="pulse" style="margin-top:6px"><span class="dot"></span> ${L.lessonNotStarted}</div>
         </div>
       </div>
       <div>
-        <div class="hb-label">Домашняя работа</div>
+        <div class="hb-label">${L.hbHomework}</div>
         <button class="home-card" onclick="go('${tgo}')">
           <span class="hc-ic">📒</span>
-          <div class="hc-d"><b>Домашняя работа</b><div class="meta">${hw.label}</div></div>
+          <div class="hc-d"><b>${L.hbHomework}</b><div class="meta">${hw.label}</div></div>
           <span class="hc-go">${hw.done?"›":"→"}</span>
         </button>
       </div>
       <div>
-        <div class="hb-label">Мой прогресс</div>
+        <div class="hb-label">${L.phMyProgress}</div>
         <button class="home-card" onclick="go('s17')">
           <span class="hc-ic">🗺️</span>
-          <div class="hc-d"><b>Мой прогресс</b><div class="meta">Карта тем${phaseLvl>=2?" и звёзды":""}</div></div>
+          <div class="hc-d"><b>${L.phMyProgress}</b><div class="meta">${L.progressMeta(phaseLvl>=2)}</div></div>
           <span class="hc-go">›</span>
         </button>
       </div>
@@ -736,9 +715,9 @@ function s1b(){
   return `<div class="t-pad">${tabletTop("")}
     <div class="bigcard center" style="margin-top:80px;gap:12px;max-width:640px;margin-left:auto;margin-right:auto">
       <div style="font-size:64px">👋</div>
-      <h1 class="kid">Урок начался!</h1>
-      <div class="sub" style="font-size:17px">Урок 84 · Деление с остатком</div>
-      <div class="pulse" style="margin-top:10px"><span class="dot"></span> Отложи планшет — смотрим на учителя</div>
+      <h1 class="kid">${L.lessonStarted}</h1>
+      <div class="sub" style="font-size:17px">${L.lessonTitleCard}</div>
+      <div class="pulse" style="margin-top:10px"><span class="dot"></span> ${L.putAside}</div>
     </div></div>`;
 }
 
@@ -748,16 +727,16 @@ function s2(){
   const dots=WARMUP.map((_,k)=>`<span class="q-dot ${k===i?"cur":st.wdone[k]===true?"ok":st.wdone[k]===false?"bad":""}"></span>`).join("");
   if(done){
     const ok=st.wdone.filter(Boolean).length;
-    return `<div class="t-pad">${tabletTop("Разминка")}${phasebar(1)}
+    return `<div class="t-pad">${tabletTop(L.phWarm)}${phasebar(1)}
       <div class="bigcard center" style="margin-top:60px;gap:10px;max-width:640px;margin-left:auto;margin-right:auto">
         <div style="font-size:52px">${ok===3?"🎉":"💪"}</div>
-        <h2 class="kid">Разминка пройдена: ${ok} из 3</h2>
-        <div class="pulse" style="margin-top:8px"><span class="dot"></span> Ждём, когда учитель начнёт объяснение</div>
+        <h2 class="kid">${L.warmDone(ok)}</h2>
+        <div class="pulse" style="margin-top:8px"><span class="dot"></span> ${L.waitExplain}</div>
       </div></div>`;
   }
   const w=WARMUP[i], a=st.ansState, rev=st.wReveal;
   // верный/неверный показываем только после сигнала учителя (rev), не сразу после ответа
-  return `<div class="t-pad">${tabletTop("Разминка")}${phasebar(1)}
+  return `<div class="t-pad">${tabletTop(L.phWarm)}${phasebar(1)}
     <div class="q-progress">${dots}</div>
     <div class="question">${w.q}</div>
     <div class="opts">${w.opts.map((o,k)=>{
@@ -771,11 +750,11 @@ function s2(){
     ${rev?distHTML(w):""}
     <div class="feedback">${a!=null?(rev
       ?(a===w.ok
-        ?`<span class="fb ok">✓ Верно! Молодец!</span>`
-        :`<span class="fb bad">Не совсем — правильный ответ подсвечен</span>`)
-      :`<span class="pulse"><span class="dot"></span> Ответ отправлен учителю — ждём разбор на экране</span>`)
-      :`<span class="sub">Выбери ответ — учитель сразу увидит</span>`}
-      ${a!=null&&rev?`<div style="margin-top:14px"><button class="btn primary" onclick="wNext()">Дальше →</button></div>`:""}
+        ?`<span class="fb ok">${L.fbCorrectWarm}</span>`
+        :`<span class="fb bad">${L.fbWrongReveal}</span>`)
+      :`<span class="pulse"><span class="dot"></span> ${L.answerSentWait}</span>`)
+      :`<span class="sub">${L.pickHint}</span>`}
+      ${a!=null&&rev?`<div style="margin-top:14px"><button class="btn primary" onclick="wNext()">${L.btnNext}</button></div>`:""}
     </div></div>`;
 }
 function wAnswer(k){if(st.ansState!=null)return;st.ansState=k;st.wdone[st.wq]=(k===WARMUP[st.wq].ok);render();}
@@ -783,9 +762,9 @@ function wNext(){st.wq++;st.ansState=null;st.wReveal=false;render();}
 /* class result on the student tablet (warm-up + explanation tasks): correct vs wrong, not per option */
 function distHTML(q){
   const total=q.dist.reduce((s,n)=>s+n,0), ok=q.dist[q.ok], bad=total-ok, pct=Math.round(ok/total*100);
-  return `<div class="wdist"><div class="wdist-cap">Как ответил класс:</div>
+  return `<div class="wdist"><div class="wdist-cap">${L.distCap}</div>
     <div class="wdist-main"><span class="wdist-track"><i style="width:${pct}%"></i></span><span class="wdist-pct">${pct}%</span></div>
-    <div class="wdist-counts">Верно: <b class="okn">${ok}</b><span class="gap"></span>Неверно: <b class="badn">${bad}</b></div>
+    <div class="wdist-counts">${L.distCorrect} <b class="okn">${ok}</b><span class="gap"></span>${L.distWrong} <b class="badn">${bad}</b></div>
   </div>`;
 }
 
@@ -795,26 +774,26 @@ function s3(){
   if(st.exTask!=null) return exTaskScreen();
   // Фаза 1: презентация на доске (вне планшета). Фаза 2+: слайды дублируются на планшете.
   if(phaseLvl<2){
-    return `<div class="t-pad">${tabletTop("Объяснение")}${phasebar(2)}
+    return `<div class="t-pad">${tabletTop(L.phExplain)}${phasebar(2)}
       <div class="bigcard center" style="margin-top:54px;gap:12px;max-width:640px;margin-left:auto;margin-right:auto">
         <div style="font-size:60px">🔒</div>
-        <h2 class="kid">Смотрим на учителя</h2>
+        <h2 class="kid">${L.lookTeacher}</h2>
       </div></div>`;
   }
   const s=SLIDES[st.slide];
-  return `<div class="t-pad">${tabletTop("Объяснение")}${phasebar(2)}
+  return `<div class="t-pad">${tabletTop(L.phExplain)}${phasebar(2)}
     <div class="slide">
       <div class="big">${s.t}</div>
       ${s.body}
     </div>
-    <div class="viewonly"><span class="lock">🔒 Смотрим вместе</span></div>
-    <div class="slidecount">Слайд ${st.slide+1} из ${SLIDES.length}</div>
+    <div class="viewonly"><span class="lock">${L.viewTogether}</span></div>
+    <div class="slidecount">${L.slideCount(st.slide+1,SLIDES.length)}</div>
   </div>`;
 }
 function exTaskScreen(){
   const q=EXTASK[st.exTask], a=st.exAns, rev=st.exReveal;
-  return `<div class="t-pad">${tabletTop("Объяснение")}${phasebar(2)}
-    <div class="prac-top"><span class="pill accent">✏️ Задание от учителя</span><span class="prac-prog">Объяснение · задание ${st.exTask+1} из ${EXTASK.length}</span></div>
+  return `<div class="t-pad">${tabletTop(L.phExplain)}${phasebar(2)}
+    <div class="prac-top"><span class="pill accent">${L.exTaskPill}</span><span class="prac-prog">${L.exTaskProg(st.exTask+1,EXTASK.length)}</span></div>
     <div class="question">${q.q}</div>
     <div class="opts">${q.opts.map((o,k)=>{
       let cls="opt";
@@ -823,9 +802,9 @@ function exTaskScreen(){
     }).join("")}</div>
     ${rev?distHTML(q):""}
     <div class="feedback">${a!=null?(rev
-      ?(a===q.ok?`<span class="fb ok">✓ Верно!</span>`:`<span class="fb bad">Не совсем — правильный ответ подсвечен</span>`)
-      :`<span class="pulse"><span class="dot"></span> Ответ отправлен учителю — ждём разбор</span>`)
-      :`<span class="sub">Выбери ответ — учитель сразу увидит</span>`}</div>
+      ?(a===q.ok?`<span class="fb ok">${L.fbCorrectShort}</span>`:`<span class="fb bad">${L.fbWrongReveal}</span>`)
+      :`<span class="pulse"><span class="dot"></span> ${L.answerSentWait2}</span>`)
+      :`<span class="sub">${L.pickHint}</span>`}</div>
   </div>`;
 }
 function exAnswer(k){if(st.exAns!=null)return;st.exAns=k;render();}
@@ -835,52 +814,52 @@ function s4(){
   if(st.stuck) return s6();
   const i=st.prac;
   if(i>=PRACTICE.length){
-    return `<div class="t-pad">${tabletTop("Практика")}${phasebar(3)}
+    return `<div class="t-pad">${tabletTop(L.phPractice)}${phasebar(3)}
       <div class="bigcard center" style="margin-top:50px;gap:10px;max-width:640px;margin-left:auto;margin-right:auto">
         <div style="font-size:52px">🚀</div>
-        <h2 class="kid">Все задачи решены!</h2>
-        <div class="sub">Решено верно: ${st.pracOk} из 2 на планшете + 1 в тетради (проверим к утру)</div>
-        <div class="pulse" style="margin-top:8px"><span class="dot"></span> Скоро рефлексия — её запустит учитель</div>
+        <h2 class="kid">${L.allSolvedTitle}</h2>
+        <div class="sub">${L.allSolvedSub(st.pracOk)}</div>
+        <div class="pulse" style="margin-top:8px"><span class="dot"></span> ${L.soonReflect}</div>
       </div></div>`;
   }
   const t=PRACTICE[i];
   const deferPills=st.deferred.length
-    ? `<span class="defer-hint">Вернись: ${st.deferred.map(d=>`<button class="defer-pill" onclick="returnTo(${d})">Задача ${d+1} ✗</button>`).join("")}</span>`
+    ? `<span class="defer-hint">${L.returnBack} ${st.deferred.map(d=>`<button class="defer-pill" onclick="returnTo(${d})">${L.taskChip(d+1)}</button>`).join("")}</span>`
     : "";
   const head=`<div class="prac-top">
-      <span class="pill accent">✏️ Решаем сами</span>
-      <span class="prac-prog">Задача ${i+1} из ${PRACTICE.length} · решено верно: ${st.pracOk}</span>
+      <span class="pill accent">${L.pracPillSolve}</span>
+      <span class="prac-prog">${L.pracProg(i+1,PRACTICE.length,st.pracOk)}</span>
       ${deferPills}
     </div>`;
   // «Позвать учителя» (S6) разблокируется после ≥2 неверных попыток
   const helpBtn=st.wrongTries>=2
-    ?`<button class="btn ghost help-link" onclick="st.stuck=true;render()">✋ Позвать учителя</button>`:"";
+    ?`<button class="btn ghost help-link" onclick="st.stuck=true;render()">${L.callTeacher}</button>`:"";
   if(t.type==="written"){
-    return `<div class="t-pad">${tabletTop("Практика")}${phasebar(3)}${head}
+    return `<div class="t-pad">${tabletTop(L.phPractice)}${phasebar(3)}${head}
       <div class="task-card">
-        <div class="task-num">Задача ${i+1} · письменная</div>
+        <div class="task-num">${L.taskWritten(i+1)}</div>
         <div class="task-text">${t.text}</div>
-        <div class="written-banner"><span class="ic">📓</span> Реши в тетради, потом сфотографируй страницу — учитель проверит к утру</div>
+        <div class="written-banner"><span class="ic">📓</span> ${L.writtenBanner}</div>
         <div class="task-foot">
-          <button class="btn primary" onclick="st.camStep=0;go('s5')">📷 Сфотографировать решение</button>
-          <button class="btn ghost help-link" onclick="st.stuck=true;render()">✋ Позвать учителя</button>
+          <button class="btn primary" onclick="st.camStep=0;go('s5')">${L.photoBtn}</button>
+          <button class="btn ghost help-link" onclick="st.stuck=true;render()">${L.callTeacher}</button>
         </div>
       </div></div>`;
   }
   const a=st.ansState; // null | "ok" | "bad"
-  return `<div class="t-pad">${tabletTop("Практика")}${phasebar(3)}${head}
+  return `<div class="t-pad">${tabletTop(L.phPractice)}${phasebar(3)}${head}
     <div class="task-card">
-      <div class="task-num">Задача ${i+1}</div>
+      <div class="task-num">${L.taskNum(i+1)}</div>
       <div class="task-text">${t.text}</div>
       <div class="answer-row">
         ${t.fields.map((f,k)=>`<div class="ans-field"><label>${f.l}</label><input id="pf${k}" inputmode="numeric" maxlength="3" class="${a==="ok"?"ok":a==="bad"?"bad":""}" ${a==="ok"?"disabled":""}></div>`).join("")}
         ${a==="ok"
-          ?`<button class="btn primary" onclick="pNext()">Дальше →</button>`
-          :`<button class="btn primary" onclick="pCheck()">Проверить</button>`}
+          ?`<button class="btn primary" onclick="pNext()">${L.btnNext}</button>`
+          :`<button class="btn primary" onclick="pCheck()">${L.btnCheck}</button>`}
         ${helpBtn}
       </div>
       <div class="feedback" style="text-align:left;min-height:40px;margin-top:14px">
-        ${a==="ok"?`<span class="fb ok">✓ Верно! Так держать!</span>`:a==="bad"?`<span class="fb bad">Пока не так. Вспомни: остаток меньше делителя. Попробуй ещё раз!</span>`:""}
+        ${a==="ok"?`<span class="fb ok">${L.fbCorrectKeep}</span>`:a==="bad"?`<span class="fb bad">${L.fbWrongPractice}</span>`:""}
       </div>
     </div></div>`;
 }
@@ -899,41 +878,41 @@ function pNext(){st.prac++;st.ansState=null;st.wrongTries=0;render();}
 /* ----- S5 camera ----- */
 function s5(){
   const step=st.camStep;
-  if(step===0) return `<div class="t-pad">${tabletTop("Практика")}
-    <h2 class="kid" style="margin-bottom:14px">📷 Сфотографируй решение из тетради</h2>
+  if(step===0) return `<div class="t-pad">${tabletTop(L.phPractice)}
+    <h2 class="kid" style="margin-bottom:14px">${L.camTitle}</h2>
     <div class="cam-stage">
       <div class="cam-frame"><i></i><i></i><i></i><i></i></div>
-      <div class="cam-hint">Помести страницу в рамку</div>
+      <div class="cam-hint">${L.camHint}</div>
     </div>
     <div class="cam-actions">
-      <button class="btn ghost" onclick="go('s4')">← Назад к задаче</button>
-      <button class="shutter" title="Сделать фото" onclick="st.camStep=1;render()"></button>
+      <button class="btn ghost" onclick="go('s4')">${L.backToTask}</button>
+      <button class="shutter" title="${L.takePhotoTitle}" onclick="st.camStep=1;render()"></button>
       <span style="width:130px"></span>
     </div></div>`;
   if(step===1){
     const more=st.photos.length>0;
-    return `<div class="t-pad">${tabletTop("Практика")}
-    <h2 class="kid" style="margin-bottom:14px">Хорошо видно?</h2>
+    return `<div class="t-pad">${tabletTop(L.phPractice)}
+    <h2 class="kid" style="margin-bottom:14px">${L.camGood}</h2>
     <div class="cam-stage"><div class="notebook"></div></div>
     <div class="cam-actions">
-      <button class="btn ghost" onclick="st.camStep=0;render()">↺ Переснять</button>
-      <button class="btn primary big" onclick="sendPhoto()">${more?"Отправить ещё ✓":"Отправить ✓"}</button>
+      <button class="btn ghost" onclick="st.camStep=0;render()">${L.retake}</button>
+      <button class="btn primary big" onclick="sendPhoto()">${more?L.sendMore:L.sendOne}</button>
     </div>
-    ${more?`<div class="sub" style="text-align:center;margin-top:12px">Уже отправлено фото: ${st.photos.length}. Это добавится как новая версия — старые сохранятся.</div>`:""}
+    ${more?`<div class="sub" style="text-align:center;margin-top:12px">${L.alreadySent(st.photos.length)}</div>`:""}
     </div>`;
   }
   const n=st.photos.length;
-  return `<div class="t-pad">${tabletTop("Практика")}
+  return `<div class="t-pad">${tabletTop(L.phPractice)}
     <div class="bigcard center" style="margin-top:54px;gap:10px;max-width:620px;margin-left:auto;margin-right:auto">
       <div style="font-size:54px">🌙</div>
-      <h2 class="kid">${n>1?`Готово · ${n} фото отправлено!`:"Фото отправлено!"}</h2>
-      <div class="sub">Проверим к утру — учитель увидит каждый шаг твоего решения.<br>${n>1?"Все версии сохранены — учитель посмотрит самую свежую.":"Если решение длинное — можно добавить ещё фото."}</div>
+      <h2 class="kid">${n>1?L.camDoneMulti(n):L.camDoneOne}</h2>
+      <div class="sub">${L.camDoneSub1}<br>${n>1?L.camDoneSubMulti:L.camDoneSubAddMore}</div>
       <div class="photo-hist">
-        ${st.photos.map((p,k)=>`<div class="ph-item"><span class="ph-thumb">🖼️</span><span class="ph-meta">Версия ${k+1}${k===n-1?" · последняя":""}</span></div>`).join("")}
+        ${st.photos.map((p,k)=>`<div class="ph-item"><span class="ph-thumb">🖼️</span><span class="ph-meta">${L.photoVersion(k+1,k===n-1)}</span></div>`).join("")}
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:6px">
-        <button class="btn ghost" onclick="st.camStep=0;render()">📷 Добавить ещё фото</button>
-        <button class="btn primary" onclick="st.prac=3;st.ansState=null;go('s4')">Продолжить практику →</button>
+        <button class="btn ghost" onclick="st.camStep=0;render()">${L.addPhoto}</button>
+        <button class="btn primary" onclick="st.prac=3;st.ansState=null;go('s4')">${L.continuePractice}</button>
       </div>
     </div></div>`;
 }
@@ -941,16 +920,16 @@ function sendPhoto(){st.photos.push({v:st.photos.length+1});st.camStep=2;render(
 
 /* ----- S6 stuck ----- */
 function s6(){
-  return `<div class="t-pad">${tabletTop("Практика")}${phasebar(3)}
+  return `<div class="t-pad">${tabletTop(L.phPractice)}${phasebar(3)}
     <div class="bigcard center stuck-card" style="gap:8px">
       <div class="stuck-emoji">🙋</div>
-      <h2 class="kid">Учитель уже знает!</h2>
-      <div class="queue-pos">Ты <b>${st.queuePos}-й</b> в очереди — учитель скоро подойдёт</div>
-      <div class="sub">Пока ждёшь — можешь решать дальше. К этой задаче вернёшься: она отмечена ✗.</div>
+      <h2 class="kid">${L.teacherKnows}</h2>
+      <div class="queue-pos">${L.queuePos(st.queuePos)}</div>
+      <div class="sub">${L.stuckSub}</div>
       <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;justify-content:center">
-        <button class="btn primary" onclick="st.stuck=false;render()">Попробую ещё раз 💪</button>
-        <button class="btn ghost" onclick="deferCurrent()">Решать дальше →</button>
-        <button class="btn ghost" onclick="toast('Хорошо, ждём учителя')">Подожду учителя</button>
+        <button class="btn primary" onclick="st.stuck=false;render()">${L.tryAgain}</button>
+        <button class="btn ghost" onclick="deferCurrent()">${L.solveOn}</button>
+        <button class="btn ghost" onclick="toast(L.toast.waitTeacher)">${L.waitTeacherBtn}</button>
       </div>
     </div></div>`;
 }
@@ -960,29 +939,26 @@ function returnTo(i){st.deferred=st.deferred.filter(x=>x!==i);st.prac=i;st.ansSt
 /* ----- S7 reflection -----
    Последовательность: смайлики (эмоц. оценка урока) → самооценка по критериям (Ф2+) → готово.
    Ф1: только смайлики. Ф2+: после смайликов — самооценка по каждому критерию плана урока. */
-const REFLEMOJIS=[["😴","Скучно"],["😐","Так себе"],["🙂","Понравилось"],["🤩","Очень круто"]];
 function s7(){
   const needCrit=phaseLvl>=2;
   // ----- готово: подтверждение -----
   if(st.reflSent){
-    const sentNote=needCrit
-      ?`Спасибо за оценку урока и за честную самооценку — это поможет подобрать задания по силам`
-      :`Учитель увидит, как классу зашёл урок`;
-    return `<div class="t-pad">${tabletTop("Рефлексия")}${phasebar(4)}
+    const sentNote=needCrit?L.reflSentCrit:L.reflSentEmoji;
+    return `<div class="t-pad">${tabletTop(L.phReflect)}${phasebar(4)}
       <div class="bigcard center" style="margin-top:60px;gap:10px;max-width:620px;margin-left:auto;margin-right:auto">
         <div style="font-size:52px">${REFLEMOJIS[st.refl][0]}</div>
-        <h2 class="kid">Спасибо, что поделилась!</h2>
+        <h2 class="kid">${L.reflThanks}</h2>
         <div class="sub">${sentNote}</div>
-        <div class="pulse" style="margin-top:8px"><span class="dot"></span> Учитель завершит урок — и появится итог</div>
+        <div class="pulse" style="margin-top:8px"><span class="dot"></span> ${L.reflTeacherFinish}</div>
       </div></div>`;
   }
   // ----- шаг 2: самооценка по критериям (Ф2+) -----
   if(st.reflStep==="crit"){
     const allRated=REFLCRIT.every((_,i)=>st.reflCrit[i]!=null);
-    return `<div class="t-pad">${tabletTop("Рефлексия")}${phasebar(4)}
+    return `<div class="t-pad">${tabletTop(L.phReflect)}${phasebar(4)}
       <div class="center" style="margin-top:8px">
-        <h1 class="kid" style="font-size:24px">Оцени себя по теме<br>«Деление с остатком»</h1>
-        <div class="sub" style="margin-top:8px">Честный ответ — это здорово: так задания будут точно по силам</div>
+        <h1 class="kid" style="font-size:24px">${L.reflCritTitle}</h1>
+        <div class="sub" style="margin-top:8px">${L.reflCritSub}</div>
       </div>
       <div class="crit-list">${REFLCRIT.map((c,i)=>`
         <div class="crit-item">
@@ -993,17 +969,17 @@ function s7(){
             </button>`).join("")}</div>
         </div>`).join("")}</div>
       <div class="center" style="margin-top:18px">
-        <button class="btn primary big" ${allRated?"":"disabled"} onclick="st.reflSent=true;render()">Отправить</button>
+        <button class="btn primary big" ${allRated?"":"disabled"} onclick="st.reflSent=true;render()">${L.btnSend}</button>
       </div></div>`;
   }
   // ----- шаг 1: эмоциональная оценка урока (смайлики) -----
   const next=needCrit?`st.reflStep='crit'`:`st.reflSent=true`;
-  return `<div class="t-pad">${tabletTop("Рефлексия")}${phasebar(4)}
+  return `<div class="t-pad">${tabletTop(L.phReflect)}${phasebar(4)}
     <div class="center" style="margin-top:36px">
-      <h1 class="kid" style="font-size:26px">Как тебе сегодняшний урок?</h1>
+      <h1 class="kid" style="font-size:26px">${L.reflEmojiTitle}</h1>
       <div class="emoji-row">${REFLEMOJIS.map((e,k)=>`<button class="emo ${st.refl===k?"sel":""}" onclick="st.refl=${k};render()"><span class="e">${e[0]}</span><span class="l">${e[1]}</span></button>`).join("")}</div>
-      <div class="sub" style="margin:10px 0 16px">Любой ответ важен — так уроки будут интереснее</div>
-      <button class="btn primary big" ${st.refl==null?"disabled":""} onclick="${next};render()">${needCrit?"Дальше →":"Отправить"}</button>
+      <div class="sub" style="margin:10px 0 16px">${L.reflEmojiSub}</div>
+      <button class="btn primary big" ${st.refl==null?"disabled":""} onclick="${next};render()">${needCrit?L.btnNext:L.btnSend}</button>
     </div></div>`;
 }
 function reflPickCrit(i,l){st.reflCrit[i]=l;render();}
@@ -1013,19 +989,19 @@ function s8(){
   return `<div class="t-pad">${tabletTop("")}
     <div class="center" style="margin-top:30px">
       <div style="font-size:56px">🎉</div>
-      <h1 class="kid">Урок пройден, Айсель!</h1>
+      <h1 class="kid">${L.lessonDoneName}</h1>
       <div class="finish-stats">
-        <div class="fstat"><div class="v accent">8</div><div class="l">задач решено</div></div>
-        <div class="fstat"><div class="v green">6</div><div class="l">верно с 1-й попытки</div></div>
-        <div class="fstat"><div class="v">🌙 1</div><div class="l">решение проверим к утру</div></div>
+        <div class="fstat"><div class="v accent">8</div><div class="l">${L.statTasksSolved}</div></div>
+        <div class="fstat"><div class="v green">6</div><div class="l">${L.statFirstTry}</div></div>
+        <div class="fstat"><div class="v">🌙 1</div><div class="l">${L.statCheckMorning}</div></div>
       </div>
       <button class="hw-card link" onclick="go('s15')">
         <span class="ic">📒</span>
-        <div><b>Назначено домашнее задание</b>
-        <div class="meta">Выполни до завтра, 8:00 · 6 заданий · Деление с остатком</div></div>
+        <div><b>${L.hwAssigned}</b>
+        <div class="meta">${L.hwAssignedMeta}</div></div>
         <span class="go">→</span>
       </button>
-      <div class="sub" style="margin-top:10px">Нажми, чтобы перейти к домашке</div>
+      <div class="sub" style="margin-top:10px">${L.tapForHw}</div>
     </div></div>`;
 }
 
@@ -1046,12 +1022,12 @@ const msoAnswered=(i)=>{
   return !!a.photo;
 };
 const msoAnsCount=()=>MSO.reduce((n,_,i)=>n+(msoAnswered(i)?1:0),0);
-const msoTimer=()=>st.msoLast5?`<span class="mso-timer"><span class="dot"></span>⏱ Осталось 4:37</span>`:"";
+const msoTimer=()=>st.msoLast5?`<span class="mso-timer"><span class="dot"></span>${L.msoTimer}</span>`:"";
 const msoHead=()=>`<div class="mso-head">
-   <span class="pill accent">📝 Контрольная работа</span>
-   <span class="mso-count">Отвечено: ${msoAnsCount()} из ${MSO.length}</span>
+   <span class="pill accent">${L.msoPill}</span>
+   <span class="mso-count">${L.msoAnsC(msoAnsCount(),MSO.length)}</span>
    <span style="margin-left:auto"></span>${msoTimer()}
-   <button class="btn ghost mso-finish" onclick="st.msoConfirm=true;render()">Завершить</button>
+   <button class="btn ghost mso-finish" onclick="st.msoConfirm=true;render()">${L.finishBtn}</button>
  </div>`;
 
 /* ----- M1 ожидание старта ----- */
@@ -1059,10 +1035,10 @@ function m1(){
   return `<div class="t-pad">${tabletTop("")}
     <div class="bigcard center" style="margin-top:70px;gap:12px;max-width:680px;margin-left:auto;margin-right:auto">
       <div style="font-size:60px">📝</div>
-      <h1 class="kid">Сегодня — контрольная работа</h1>
-      <div class="sub" style="font-size:16px">Деление с остатком · ${MSO.length} заданий</div>
-      <div class="sub" style="max-width:480px">Решай в любом порядке и не спеши: пока не завершишь тест, любой ответ можно поменять.</div>
-      <div class="pulse" style="margin-top:8px"><span class="dot"></span> Ждём, когда учитель начнёт</div>
+      <h1 class="kid">${L.m1Title}</h1>
+      <div class="sub" style="font-size:16px">${L.m1Sub(MSO.length)}</div>
+      <div class="sub" style="max-width:480px">${L.m1Sub2}</div>
+      <div class="pulse" style="margin-top:8px"><span class="dot"></span> ${L.m1Wait}</div>
     </div></div>`;
 }
 
@@ -1083,10 +1059,10 @@ function m2(){
   }else{
     body=`<div class="task-card">
       <div class="task-text">${t.q}</div>
-      <div class="written-banner"><span class="ic">📓</span> Реши в тетради и сфотографируй решение — его оценят по шагам</div>
+      <div class="written-banner"><span class="ic">📓</span> ${L.msoWrittenBanner}</div>
       <div class="task-foot">${a.photo
-        ?`<span class="mso-saved">🖼️ Фото решения приложено</span><button class="btn ghost" onclick="st.msoAns[${i}]={photo:true};st.camStep=0;toast('В прототипе камера — как в практике (S5)');render()">↺ Переснять</button>`
-        :`<button class="btn primary" onclick="st.msoAns[${i}]={photo:true};render()">📷 Сфотографировать решение</button>`}</div>
+        ?`<span class="mso-saved">${L.photoAttached}</span><button class="btn ghost" onclick="st.msoAns[${i}]={photo:true};st.camStep=0;toast(L.toast.cameraLikePractice);render()">${L.retake}</button>`
+        :`<button class="btn primary" onclick="st.msoAns[${i}]={photo:true};render()">${L.photoBtn}</button>`}</div>
     </div>`;
   }
   // подтверждение завершения — по кнопке «Завершить» в правом верхнем углу
@@ -1095,29 +1071,29 @@ function m2(){
     <div class="mso-modal" onclick="event.stopPropagation()">
       <div style="font-size:44px;margin-bottom:8px">${empty.length?"🤔":"🏁"}</div>
       ${empty.length
-        ?`<h2 class="kid">На ${empty.length} ${empty.length===1?"задание не отправлен ответ":(empty.length<5?"задания":"заданий")+" не отправлены ответы"}</h2>
-           <div class="sub" style="margin-top:8px">Ты уверен, что хочешь завершить?</div>
+        ?`<h2 class="kid">${L.msoEmptyTitle(empty.length)}</h2>
+           <div class="sub" style="margin-top:8px">${L.msoSureFinish}</div>
            <div class="btns">
-             <button class="btn primary" onclick="st.msoConfirm=false;msoGoto(${empty[0]})">← Вернуться к контрольной</button>
-             <button class="btn ghost" onclick="msoFinish('self')">Завершить</button>
+             <button class="btn primary" onclick="st.msoConfirm=false;msoGoto(${empty[0]})">${L.msoBackToTest}</button>
+             <button class="btn ghost" onclick="msoFinish('self')">${L.finishBtn}</button>
            </div>`
-        :`<h2 class="kid">Ты уверен, что хочешь завершить?</h2>
-           <div class="sub" style="margin-top:8px">После завершения ответы изменить нельзя.</div>
+        :`<h2 class="kid">${L.msoSureFinish}</h2>
+           <div class="sub" style="margin-top:8px">${L.msoNoChange}</div>
            <div class="btns">
-             <button class="btn ghost" onclick="st.msoConfirm=false;render()">← Вернуться к контрольной</button>
-             <button class="btn primary" onclick="msoFinish('self')">Завершить</button>
+             <button class="btn ghost" onclick="st.msoConfirm=false;render()">${L.msoBackToTest}</button>
+             <button class="btn primary" onclick="msoFinish('self')">${L.finishBtn}</button>
            </div>`}
     </div></div>`;
-  return `<div class="t-pad" style="position:relative;min-height:640px">${tabletTop("Контрольная")}${msoHead()}
+  return `<div class="t-pad" style="position:relative;min-height:640px">${tabletTop(L.phTest)}${msoHead()}
     <div class="tq-row">${chips}</div>
-    <div class="center" style="margin-bottom:10px"><span class="pts-pill">${t.pts} ${t.pts===1?"балл":t.pts<5?"балла":"баллов"}${t.type==="written"?" · по критериям":""}</span></div>
+    <div class="center" style="margin-bottom:10px"><span class="pts-pill">${L.ptsPill(t.pts,t.type==="written")}</span></div>
     ${body}
     <div class="feedback" style="min-height:44px;margin-top:12px">${msoAnswered(i)
-      ?`<span class="mso-saved">✓ Ответ записан · можно изменить, пока тест не завершён</span>`
-      :`<span class="sub">Верно или нет — узнаешь после проверки</span>`}</div>
+      ?`<span class="mso-saved">${L.msoAnsRecorded}</span>`
+      :`<span class="sub">${L.msoWaitCheck}</span>`}</div>
     <div class="mso-navrow">
-      <button class="btn ghost" ${i===0?"disabled style='opacity:.4'":""} onclick="msoGoto(${i-1})">← Назад</button>
-      ${i<MSO.length-1?`<button class="btn primary" onclick="msoGoto(${i+1})">Дальше →</button>`:""}
+      <button class="btn ghost" ${i===0?"disabled style='opacity:.4'":""} onclick="msoGoto(${i-1})">${L.btnBack}</button>
+      ${i<MSO.length-1?`<button class="btn primary" onclick="msoGoto(${i+1})">${L.btnNext}</button>`:""}
     </div>
     ${modal}</div>`;
 }
@@ -1133,10 +1109,10 @@ function m3(){
   return `<div class="t-pad">${tabletTop("")}
     <div class="bigcard center" style="margin-top:70px;gap:12px;max-width:680px;margin-left:auto;margin-right:auto">
       <div style="font-size:60px">${byTeacher?"⏰":"🎉"}</div>
-      <h1 class="kid">${byTeacher?"Время вышло!":"Тест сдан!"}</h1>
-      ${byTeacher?`<div class="sub" style="font-size:15px">Учитель завершил контрольную — твои ответы отправились сами</div>`:`<div class="sub" style="font-size:15px">Твои ответы отправлены · отвечено: ${msoAnsCount()} из ${MSO.length}</div>`}
-      <div class="sub" style="font-size:16px;font-weight:700;color:var(--ink)">Результаты учитель сообщит на следующем уроке</div>
-      <div class="sub" style="max-width:440px">Ты молодец, что старался! Письменное решение учитель посмотрит по шагам.</div>
+      <h1 class="kid">${byTeacher?L.m3TitleTeacher:L.m3TitleSelf}</h1>
+      ${byTeacher?`<div class="sub" style="font-size:15px">${L.m3ByTeacher}</div>`:`<div class="sub" style="font-size:15px">${L.m3BySelf(msoAnsCount(),MSO.length)}</div>`}
+      <div class="sub" style="font-size:16px;font-weight:700;color:var(--ink)">${L.m3Results}</div>
+      <div class="sub" style="max-width:440px">${L.m3Encourage}</div>
     </div></div>`;
 }
 
@@ -1154,8 +1130,8 @@ function s15(){
   const dots=HOMEWORK.map((_,k)=>`<span class="q-dot ${k===i?"cur":st.hdone[k]===true?"ok":st.hdone[k]===false?"bad":""}"></span>`).join("");
   return `<div class="t-pad">${tabletTop("")}
     <div class="prac-top">
-      <span class="pill accent">📒 Домашняя работа · Деление с остатком</span>
-      <span class="prac-prog">Задание ${i+1} из ${HOMEWORK.length} · до завтра, 8:00</span>
+      <span class="pill accent">${L.hwPill}</span>
+      <span class="prac-prog">${L.hwProg(i+1,HOMEWORK.length)}</span>
     </div>
     <div class="q-progress">${dots}</div>
     <div class="question">${h.q}</div>
@@ -1168,10 +1144,10 @@ function s15(){
       return `<button class="${cls}" ${a!=null?"disabled":""} onclick="hAnswer(${k})">${o}</button>`;
     }).join("")}</div>
     <div class="feedback">${a!=null?(phaseLvl>=2
-      ?(a===h.ok?`<span class="fb ok">✓ Верно!</span>`:`<span class="fb bad">Правильный ответ подсвечен</span>`)
-      :`<span class="fb ok" style="background:var(--accent-soft);color:var(--accent)">✓ Ответ сохранён · проверит учитель</span>`)
-      :`<span class="sub">Можно прерваться — прогресс сохранится</span>`}
-      ${a!=null?`<div style="margin-top:14px"><button class="btn primary" onclick="hNext()">${i===HOMEWORK.length-1?"Завершить":"Дальше"} →</button></div>`:""}
+      ?(a===h.ok?`<span class="fb ok">${L.fbCorrectShort}</span>`:`<span class="fb bad">${L.fbRightHighlighted}</span>`)
+      :`<span class="fb ok" style="background:var(--accent-soft);color:var(--accent)">${L.answerSavedTeacher}</span>`)
+      :`<span class="sub">${L.canPause}</span>`}
+      ${a!=null?`<div style="margin-top:14px"><button class="btn primary" onclick="hNext()">${i===HOMEWORK.length-1?L.finishWord:L.nextWord} →</button></div>`:""}
     </div></div>`;
 }
 
@@ -1179,69 +1155,69 @@ function s15(){
 function s16(){
   st.hwFinished=true;
   if(phaseLvl<2){
-    return `<div class="t-pad">${tabletTop("Домашняя работа")}
+    return `<div class="t-pad">${tabletTop(L.phHomework)}
       <div class="bigcard center" style="margin-top:64px;gap:10px;max-width:640px;margin-left:auto;margin-right:auto">
         <div style="font-size:56px">📨</div>
-        <h2 class="kid">Все 6 заданий отправлены!</h2>
-        <div class="sub">Учитель проверит к утру и даст обратную связь на уроке.</div>
-        <div style="margin-top:16px"><button class="btn primary" onclick="go('s1')">На главную</button></div>
+        <h2 class="kid">${L.allSentTitle}</h2>
+        <div class="sub">${L.allSentSub}</div>
+        <div style="margin-top:16px"><button class="btn primary" onclick="go('s1')">${L.toHome}</button></div>
       </div></div>`;
   }
   const ok=st.hdone.length?st.hdone.filter(Boolean).length:5;
   const wrongIdx=st.hdone.length?st.hdone.findIndex(v=>v===false):2;
   const wi=wrongIdx>=0?wrongIdx:2;
   const stars=starsFor(ok,6);
-  return `<div class="t-pad">${tabletTop("Домашняя работа")}
+  return `<div class="t-pad">${tabletTop(L.phHomework)}
     <div class="center" style="margin-top:20px">
       <div style="font-size:50px">🎉</div>
       ${starsHTML(stars,true)}
-      <h1 class="kid" style="margin-top:6px">Решено верно: ${ok} из 6</h1>
-      <div class="sub">${stars===3?"Отличная работа!":stars===2?"Хорошо! Есть пара ошибок — давай разберём":"Давай разберём ошибки вместе"}</div>
-      <div class="sub" style="font-size:12px">Учитель утром увидит твой результат</div>
+      <h1 class="kid" style="margin-top:6px">${L.solvedOf6(ok)}</h1>
+      <div class="sub">${L.gradeText(stars)}</div>
+      <div class="sub" style="font-size:12px">${L.teacherSeesMorning}</div>
     </div>
     ${ok<6?`<div class="bigcard" style="max-width:640px;margin:18px auto 0">
-      <div class="task-num">Разбор ошибки</div>
+      <div class="task-num">${L.errorReview}</div>
       <div class="review-item" style="border-top:none">
         <span class="ic">✗</span>
         <div><b>${HOMEWORK[wi].q}</b><br>
-        Правильно: <span class="ok-ans">${HOMEWORK[wi].opts[HOMEWORK[wi].ok]}</span><br>
-        <span class="sub">Подсказка: проверь себя умножением — и помни, что остаток меньше делителя</span></div>
+        ${L.correctLabel} <span class="ok-ans">${HOMEWORK[wi].opts[HOMEWORK[wi].ok]}</span><br>
+        <span class="sub">${L.hintMultiply}</span></div>
       </div>
     </div>`:""}
-    <div class="center" style="margin-top:18px"><button class="btn primary" onclick="go('s1')">На главную</button></div>`;
+    <div class="center" style="margin-top:18px"><button class="btn primary" onclick="go('s1')">${L.toHome}</button></div>`;
 }
 
 /* ----- S17 my progress (tablet) ----- */
 function s17(){
   const missed=TOPICS.filter(t=>t.missed);
-  return `<div class="t-pad">${tabletTop("Мой прогресс")}
+  return `<div class="t-pad">${tabletTop(L.phMyProgress)}
     <div class="home-stack">
       <div>
         <div class="hb-label" style="display:flex;justify-content:space-between;align-items:center">
-          <span>📚 Мои уроки</span>
-          <span style="font-weight:600;text-transform:none;letter-spacing:0">${phaseLvl>=2?"★ — за домашку":"✓ — ДЗ сдано"}</span>
+          <span>${L.myLessons}</span>
+          <span style="font-weight:600;text-transform:none;letter-spacing:0">${phaseLvl>=2?L.starsForHw:L.checkForHw}</span>
         </div>
         <div class="bigcard" style="padding:18px 22px">
           <div class="trail">${TOPICS.map(t=>{
             const clickable=!t.locked&&!t.missed;
-            const stTxt=t.cur?"Учим сейчас":t.locked?"Откроется дальше":t.missed?"Домашка не сдана":"Пройдено";
+            const stTxt=t.cur?L.statusNow:t.locked?L.statusLocked:t.missed?L.statusMissed:L.statusDone;
             return `<div class="tnode ${t.cur?"cur":""} ${t.locked?"locked":""} ${t.missed?"missed":""} ${clickable?"rev-link":""}" ${clickable?`onclick="openReview('${t.nm}')"`:""}>
               <div class="nm">${t.nm}</div>
-              <div class="st">${stTxt}${clickable?" · нажми, чтобы пересмотреть":""}</div>
+              <div class="st">${stTxt}${clickable?L.tapToReview:""}</div>
               <span class="stars">${t.cur?"✏️":t.locked?"🔒":t.missed?'<span class="dim-ic">📥</span>':(phaseLvl>=2?starsHTML(t.stars):'<span style="color:var(--green);font-weight:800">✓</span>')}</span>
             </div>`;}).join("")}</div>
         </div>
       </div>
       <div>
-        <div class="hb-label">📥 Пропущенные домашки</div>
+        <div class="hb-label">${L.missedHw}</div>
         <div class="bigcard" style="padding:18px 22px">
           ${missed.length
             ?missed.map(t=>`
               <div class="hwlist-item">
                 <div><div class="nm">${t.nm}</div><div class="why">${t.why}</div></div>
-                <button class="btn soft" onclick="toast('Откроем задания урока 79 — без спешки, это не на оценку')">Догнать</button>
+                <button class="btn soft" onclick="toast(L.toast.catchUp)">${L.catchUp}</button>
               </div>`).join("")
-            :`<div class="pmeta" style="padding:6px 0">Пропущенных домашек нет — молодец! 🎉</div>`}
+            :`<div class="pmeta" style="padding:6px 0">${L.noMissed}</div>`}
         </div>
       </div>
     </div></div>`;
@@ -1253,7 +1229,7 @@ function s17(){
    повтор всех фаз (добавляются объяснение и рефлексия). Только просмотр. */
 function openReview(name){st.reviewLesson=name;go('s18');}
 function s18(){
-  const lesson=st.reviewLesson||"Деление с остатком";
+  const lesson=st.reviewLesson||L.feedback.topic;
   const full=phaseLvl>=2;
   const icOk=v=>v===true?'<span class="ic" style="color:var(--green)">✓</span>'
     :v===false?'<span class="ic" style="color:var(--coral)">✗</span>'
@@ -1264,47 +1240,47 @@ function s18(){
   const wuOk=WARMUP.filter((w,k)=>REVIEW.warmup[k]===w.ok).length;
   const warmup=WARMUP.map((w,k)=>{
     const pick=REVIEW.warmup[k], ok=pick===w.ok;
-    return revRow(ok, w.q, `Твой ответ: <b class="${ok?'ok-ans':'bad-ans'}">${w.opts[pick]}</b>${ok?'':` · верно: <b class="ok-ans">${w.opts[w.ok]}</b>`}`);
+    return revRow(ok, w.q, `${L.yourAnswer} <b class="${ok?'ok-ans':'bad-ans'}">${w.opts[pick]}</b>${ok?'':` · ${L.revCorrect}: <b class="ok-ans">${w.opts[w.ok]}</b>`}`);
   }).join("");
   const practice=PRACTICE.map((t,k)=>{
     const r=REVIEW.practice[k];
-    if(r.written) return revRow(null, `Задача ${k+1} · письменная`, `📷 Решена в тетради — фото отправлено учителю`);
+    if(r.written) return revRow(null, L.taskWritten(k+1), L.writtenSolvedVal);
     const vals=t.fields.map((f,i)=>`${f.l}: <b class="${r.ok?'ok-ans':'bad-ans'}">${r.vals[i]}</b>`).join(" · ");
-    return revRow(r.ok, `Задача ${k+1}`, vals);
+    return revRow(r.ok, L.taskNum(k+1), vals);
   }).join("");
   // Ф2-only: объяснение и рефлексия
-  const explain=full?`<div class="rev-sec"><div class="rev-sec-h">▶ Объяснение</div>
-    ${SLIDES.map((s,k)=>revRow(null, `Слайд ${k+1}`, s.t)).join("")}</div>`:"";
-  const refl=full?`<div class="rev-sec"><div class="rev-sec-h">☺ Рефлексия</div>
-    ${revRow(null, "Как тебе урок", `<b>${REFLEMOJIS[REVIEW.reflEmoji][0]} ${REFLEMOJIS[REVIEW.reflEmoji][1]}</b>`)}
+  const explain=full?`<div class="rev-sec"><div class="rev-sec-h">${L.explainH}</div>
+    ${SLIDES.map((s,k)=>revRow(null, L.slideK(k+1), s.t)).join("")}</div>`:"";
+  const refl=full?`<div class="rev-sec"><div class="rev-sec-h">${L.reflH}</div>
+    ${revRow(null, L.howLesson, `<b>${REFLEMOJIS[REVIEW.reflEmoji][0]} ${REFLEMOJIS[REVIEW.reflEmoji][1]}</b>`)}
     ${REFLCRIT.map((c,i)=>revRow(null, c, `<b>${CRITLEVELS[REVIEW.reflCrit[i]][0]} ${CRITLEVELS[REVIEW.reflCrit[i]][1]}</b>`)).join("")}</div>`:"";
 
   // ----- Домашняя работа -----
   const hwOk=HOMEWORK.filter((h,k)=>REVIEW.homework[k]===h.ok).length;
   const homework=HOMEWORK.map((h,k)=>{
     const pick=REVIEW.homework[k], ok=pick===h.ok;
-    return revRow(ok, h.q, `Твой ответ: <b class="${ok?'ok-ans':'bad-ans'}">${h.opts[pick]}</b>${ok?'':` · верно: <b class="ok-ans">${h.opts[h.ok]}</b>`}`);
+    return revRow(ok, h.q, `${L.yourAnswer} <b class="${ok?'ok-ans':'bad-ans'}">${h.opts[pick]}</b>${ok?'':` · ${L.revCorrect}: <b class="ok-ans">${h.opts[h.ok]}</b>`}`);
   }).join("");
 
   return `<div class="t-pad">${tabletTop("")}
     <div class="prac-top">
-      <button class="btn ghost" style="padding:8px 14px" onclick="go('s17')">← Назад</button>
-      <span class="pill" style="background:var(--surface-2)">👁 Режим просмотра</span>
-      <span class="prac-prog">Так ты прошёл урок · только смотрим, ничего не меняем</span>
+      <button class="btn ghost" style="padding:8px 14px" onclick="go('s17')">${L.btnBack}</button>
+      <span class="pill" style="background:var(--surface-2)">${L.reviewMode}</span>
+      <span class="prac-prog">${L.reviewProg}</span>
     </div>
     <h2 class="kid" style="margin:6px 0 10px">${lesson}</h2>
     <div class="rev-wrap">
       <div>
-        <div class="hb-label">📚 Классная работа</div>
+        <div class="hb-label">${L.classworkH}</div>
         <div class="bigcard" style="padding:14px 20px">
-          <div class="rev-sec"><div class="rev-sec-h">⚡ Разминка · ${wuOk} из ${WARMUP.length} верно</div>${warmup}</div>
+          <div class="rev-sec"><div class="rev-sec-h">${L.warmupH(wuOk,WARMUP.length)}</div>${warmup}</div>
           ${explain}
-          <div class="rev-sec"><div class="rev-sec-h">✎ Практика</div>${practice}</div>
+          <div class="rev-sec"><div class="rev-sec-h">${L.practiceH}</div>${practice}</div>
           ${refl}
         </div>
       </div>
       <div>
-        <div class="hb-label">📒 Домашняя работа · ${hwOk} из ${HOMEWORK.length} верно</div>
+        <div class="hb-label">${L.homeworkRevH(hwOk,HOMEWORK.length)}</div>
         <div class="bigcard" style="padding:14px 20px">${homework}</div>
       </div>
     </div></div>`;
@@ -1312,40 +1288,40 @@ function s18(){
 
 /* ================= PHONE ================= */
 function pTop(title){
-  return `<div class="p-greet"><span class="kid-ava">🦊</span><div><h2>${title}</h2><div class="sub">Айсель · 4-А</div></div></div>`;
+  return `<div class="p-greet"><span class="kid-ava">🦊</span><div><h2>${title}</h2><div class="sub">${L.studentLineShort}</div></div></div>`;
 }
 
 /* ----- S9 phone home ----- */
 function s9(){
   const done=st.hwFinished;
   const solved=st.hdone.length;
-  return `<div class="p-pad">${pTop("Привет, Айсель!")}
+  return `<div class="p-pad">${pTop(L.greetName)}
     <div class="pcard">
-      <div class="hd"><span style="font-size:20px">📒</span><span class="t">Домашка · Деление с остатком</span><span class="deadline">до завтра 8:00</span></div>
+      <div class="hd"><span style="font-size:20px">📒</span><span class="t">${L.pHwTitle}</span><span class="deadline">${L.deadlineTom}</span></div>
       <div class="pbar ${done?"green":""}"><i style="width:${done?100:Math.round(solved/6*100)}%"></i></div>
-      <div class="pmeta">${done?(phaseLvl>=2?"Сдано! Результат: 5 из 6 ✓":"Отправлено — учитель проверит"):`Решено ${solved} из 6 заданий`}</div>
+      <div class="pmeta">${done?(phaseLvl>=2?L.hwSubmittedResult:L.hwSentTeacherCheck):L.solvedN(solved)}</div>
       <div style="margin-top:12px">${done
-        ?`<button class="btn soft" style="width:100%" onclick="go('s11')">Посмотреть${phaseLvl>=2?" результат":""}</button>`
-        :`<button class="btn primary" style="width:100%" onclick="go('s10')">${solved?"Продолжить":"Начать"} →</button>`}</div>
+        ?`<button class="btn soft" style="width:100%" onclick="go('s11')">${phaseLvl>=2?L.viewResult:L.viewBase}</button>`
+        :`<button class="btn primary" style="width:100%" onclick="go('s10')">${solved?L.continueWord:L.startWord} →</button>`}</div>
     </div>
     <div class="pcard lesson-status">
-      <div class="hd"><span style="font-size:20px">📚</span><span class="t">Классная работа</span></div>
-      <div class="pmeta">Следующий урок: завтра, 9:00</div>
-      <div class="ls-meta">Урок проходит в классе, на планшете — открывается, когда учитель его начнёт</div>
+      <div class="hd"><span style="font-size:20px">📚</span><span class="t">${L.hbClasswork}</span></div>
+      <div class="pmeta">${L.nextLesson}</div>
+      <div class="ls-meta">${L.lessonInClass}</div>
     </div>
     <div class="pcard" data-phase="2">
-      <div class="hd"><span style="font-size:20px">📊</span><span class="t">По итогам урока</span></div>
+      <div class="hd"><span style="font-size:20px">📊</span><span class="t">${L.afterLesson}</span></div>
       <span class="fb-topic">${FEEDBACK.topic}</span>
       <div class="fb-line good"><span class="ic">✅</span><span>${FEEDBACK.good}</span></div>
       <div class="fb-line grow"><span class="ic">🎯</span><span>${FEEDBACK.grow}</span></div>
     </div>
     <div class="prow" style="margin-bottom:14px">
-      <div class="pcard"><div class="v">✅ 7 из 8</div><div class="l">домашек сдано в срок</div></div>
-      <div class="pcard" style="cursor:pointer" onclick="go('s12')"><div class="v">📥 1</div><div class="l">пропущена — можно догнать</div></div>
+      <div class="pcard"><div class="v">${L.hwOnTimeV}</div><div class="l">${L.hwOnTimeL}</div></div>
+      <div class="pcard" style="cursor:pointer" onclick="go('s12')"><div class="v">${L.hwMissedV}</div><div class="l">${L.hwMissedL}</div></div>
     </div>
     <div class="pcard" style="cursor:pointer" onclick="go('s12')">
-      <div class="hd"><span style="font-size:20px">🗺️</span><span class="t">Мой прогресс</span><span style="margin-left:auto;color:var(--muted)">›</span></div>
-      <div class="pmeta">Сейчас: Деление с остатком</div>
+      <div class="hd"><span style="font-size:20px">🗺️</span><span class="t">${L.phMyProgress}</span><span style="margin-left:auto;color:var(--muted)">›</span></div>
+      <div class="pmeta">${L.nowTopic}</div>
     </div></div>`;
 }
 
@@ -1355,9 +1331,9 @@ function s10(){
   if(i>=HOMEWORK.length){st.hwFinished=true;return s11();}
   const h=HOMEWORK[i], a=st.ansState;
   const dots=HOMEWORK.map((_,k)=>`<span class="hw-dot ${k===i?"cur":st.hdone[k]===true?"ok":st.hdone[k]===false?"bad":""}"></span>`).join("");
-  return `<div class="p-pad">${pTop("Домашка")}
+  return `<div class="p-pad">${pTop(L.pHwGreet)}
     <div class="hw-dots">${dots}</div>
-    <div class="pmeta" style="text-align:center">Задание ${i+1} из 6</div>
+    <div class="pmeta" style="text-align:center">${L.taskIof6(i+1)}</div>
     <div class="p-q">${h.q}</div>
     <div class="p-opts">${h.opts.map((o,k)=>{
       let cls="p-opt";
@@ -1368,10 +1344,10 @@ function s10(){
       return `<button class="${cls}" ${a!=null?"disabled":""} onclick="hAnswer(${k})">${o}</button>`;
     }).join("")}</div>
     <div class="feedback">${a!=null?(phaseLvl>=2
-      ?(a===h.ok?`<span class="fb ok">✓ Верно!</span>`:`<span class="fb bad">Правильный ответ подсвечен</span>`)
-      :`<span class="sub">✓ Ответ сохранён · проверит учитель</span>`)
-      :`<span class="sub">Можно прерваться — прогресс сохранится</span>`}
-      ${a!=null?`<div style="margin-top:12px"><button class="btn primary" style="width:100%" onclick="hNext()">${i===5?"Завершить":"Дальше"} →</button></div>`:""}
+      ?(a===h.ok?`<span class="fb ok">${L.fbCorrectShort}</span>`:`<span class="fb bad">${L.fbRightHighlighted}</span>`)
+      :`<span class="sub">${L.answerSavedTeacher}</span>`)
+      :`<span class="sub">${L.canPause}</span>`}
+      ${a!=null?`<div style="margin-top:12px"><button class="btn primary" style="width:100%" onclick="hNext()">${i===5?L.finishWord:L.nextWord} →</button></div>`:""}
     </div></div>`;
 }
 function hAnswer(k){if(st.ansState!=null)return;st.ansState=k;st.hdone[st.hq]=(k===HOMEWORK[st.hq].ok);render();}
@@ -1381,58 +1357,58 @@ function hNext(){st.hq++;st.ansState=null;render();}
 function s11(){
   st.hwFinished=true;
   if(phaseLvl<2){
-    return `<div class="p-pad">${pTop("Домашка отправлена!")}
+    return `<div class="p-pad">${pTop(L.pHwSentTitle)}
       <div class="pcard center" style="gap:8px;padding:24px">
         <div style="font-size:44px">📨</div>
-        <h2 class="kid" style="font-size:20px">Все 6 заданий отправлены</h2>
-        <div class="sub">Учитель проверит к утру и даст обратную связь на уроке.</div>
+        <h2 class="kid" style="font-size:20px">${L.allSentShort}</h2>
+        <div class="sub">${L.allSentSub}</div>
       </div>
-      <button class="btn soft" style="width:100%" onclick="go('s9')">На главную</button></div>`;
+      <button class="btn soft" style="width:100%" onclick="go('s9')">${L.toHome}</button></div>`;
   }
   const ok=st.hdone.length?st.hdone.filter(Boolean).length:5;
   const wrongIdx=st.hdone.length?st.hdone.findIndex(v=>v===false):2;
   const stars=starsFor(ok,6);
-  return `<div class="p-pad">${pTop("Домашка сдана!")}
+  return `<div class="p-pad">${pTop(L.pHwDoneTitle)}
     <div class="pcard center" style="gap:4px;padding:24px">
       <div style="font-size:40px">🎉</div>
       ${starsHTML(stars,true)}
-      <h2 class="kid" style="font-size:20px">Решено верно: ${ok} из 6</h2>
-      <div class="sub">${stars===3?"Отличная работа!":stars===2?"Хорошо! Есть пара ошибок — давай разберём":"Давай разберём ошибки вместе"}</div>
-      <div class="sub" style="font-size:12px">Учитель утром увидит твой результат</div>
+      <h2 class="kid" style="font-size:20px">${L.solvedOf6(ok)}</h2>
+      <div class="sub">${L.gradeText(stars)}</div>
+      <div class="sub" style="font-size:12px">${L.teacherSeesMorning}</div>
     </div>
     ${ok<6?`<div class="pcard">
-      <div class="hd"><span class="t">Разбор ошибки</span></div>
+      <div class="hd"><span class="t">${L.errorReview}</span></div>
       <div class="review-item" style="border-top:none">
         <span class="ic">✗</span>
         <div><b>${HOMEWORK[wrongIdx>=0?wrongIdx:2].q}</b><br>
-        Правильно: <span class="ok-ans">${HOMEWORK[wrongIdx>=0?wrongIdx:2].opts[HOMEWORK[wrongIdx>=0?wrongIdx:2].ok]}</span><br>
-        <span class="sub">Подсказка: проверь себя умножением — и помни, что остаток меньше делителя</span></div>
+        ${L.correctLabel} <span class="ok-ans">${HOMEWORK[wrongIdx>=0?wrongIdx:2].opts[HOMEWORK[wrongIdx>=0?wrongIdx:2].ok]}</span><br>
+        <span class="sub">${L.hintMultiply}</span></div>
       </div>
     </div>`:""}
-    <button class="btn soft" style="width:100%" onclick="go('s9')">На главную</button></div>`;
+    <button class="btn soft" style="width:100%" onclick="go('s9')">${L.toHome}</button></div>`;
 }
 
 /* ----- S12 progress ----- */
 function s12(){
-  return `<div class="p-pad">${pTop("Мой прогресс")}
+  return `<div class="p-pad">${pTop(L.phMyProgress)}
     <div class="pcard">
-      <div class="hd"><span class="t">📚 Мои уроки</span><span style="margin-left:auto" class="pmeta">${phaseLvl>=2?"★ — за домашку":"✓ — ДЗ сдано"}</span></div>
+      <div class="hd"><span class="t">${L.myLessons}</span><span style="margin-left:auto" class="pmeta">${phaseLvl>=2?L.starsForHw:L.checkForHw}</span></div>
       <div class="trail">${TOPICS.map(t=>`
         <div class="tnode ${t.cur?"cur":""} ${t.locked?"locked":""} ${t.missed?"missed":""}">
           <div class="nm">${t.nm}</div>
-          <div class="st">${t.cur?"Учим сейчас":t.locked?"Откроется дальше":t.missed?"Домашка не сдана":"Пройдено"}</div>
+          <div class="st">${t.cur?L.statusNow:t.locked?L.statusLocked:t.missed?L.statusMissed:L.statusDone}</div>
           <span class="stars">${t.cur?"✏️":t.locked?"🔒":t.missed?'<span class="dim-ic">📥</span>':(phaseLvl>=2?starsHTML(t.stars):'<span style="color:var(--green);font-weight:800">✓</span>')}</span>
         </div>`).join("")}</div>
     </div>
     <div class="pcard">
-      <div class="hd"><span style="font-size:20px">📥</span><span class="t">Пропущенные домашки</span></div>
+      <div class="hd"><span style="font-size:20px">📥</span><span class="t">${L.missedHwPhone}</span></div>
       ${TOPICS.filter(t=>t.missed).length
         ?TOPICS.filter(t=>t.missed).map(t=>`
           <div class="hwlist-item">
             <div><div class="nm">${t.nm}</div><div class="why">${t.why}</div></div>
-            <button class="btn soft" onclick="toast('Откроем задания урока 79 — без спешки, это не на оценку')">Догнать</button>
+            <button class="btn soft" onclick="toast(L.toast.catchUp)">${L.catchUp}</button>
           </div>`).join("")
-        :`<div class="pmeta" style="padding:6px 0">Пропущенных домашек нет — молодец! 🎉</div>`}
+        :`<div class="pmeta" style="padding:6px 0">${L.noMissed}</div>`}
     </div></div>`;
 }
 
@@ -1440,22 +1416,282 @@ function s12(){
 function s13(){return `<div class="t-pad">${tabletTop("")}
   <div class="stub bigcard">
     <div class="e">🧭</div>
-    <h2 class="kid">Твой особенный урок</h2>
-    <p>Раз в две недели — урок-приключение, собранный специально для тебя.<br>
-    Система подберёт задания по твоей карте тем: закрыть пробелы, закрепить базу или взять задачи посложнее.</p>
-    <p style="font-size:12.5px">Заглушка · буферные уроки (треки A/B/C) — вне скоупа v1</p>
+    <h2 class="kid">${L.s13title}</h2>
+    <p>${L.s13p1}</p>
+    <p style="font-size:12.5px">${L.s13p2}</p>
   </div></div>`;}
 function s14(){return `<div class="t-pad">${tabletTop("")}
   <div class="stub bigcard">
     <div class="e">🎯</div>
-    <h2 class="kid">Проверка знаний</h2>
-    <p>3 раза в год — особый режим: без подсказок и без проверки ответов до самого конца.<br>
-    Результат увидишь, когда все закончат.</p>
-    <p style="font-size:12.5px">Заглушка · диагностика (симуляция мониторинга) — вне скоупа v1</p>
+    <h2 class="kid">${L.s14title}</h2>
+    <p>${L.s14p1}</p>
+    <p style="font-size:12.5px">${L.s14p2}</p>
   </div></div>`;}
 
+/* ======================================================================
+   LOCALE — весь текст интерфейса и контента. Три языка: az / en / ru.
+   Ключи и функции одинаковы во всех трёх; логика (ответы) — в LOGIC.
+   ====================================================================== */
+const LOCALE={};
+
+/* ---------------- Azərbaycan dili (по умолчанию) ---------------- */
+LOCALE.az={
+  html:"az",
+  role:"Şagird", chip:"Aysel Məmmədova · 4-A", lessonHdr:"84-cü dərs: Qalıqlı bölmə",
+  dateHdr:"29 may, C.a.", avatarInit:"AM",
+  langLabel:"Dil", stageLabel:"Mərhələ", ph1:"1-ci faza", ph2:"2-ci faza", ph3:"Final",
+  stub:"tezliklə",
+  navFoot:"Prototip · nümunə məlumatlar<br>Dərs və sinif — müəllim prototipindəki kimi",
+  navGroup:{inclass:"Sinifdə · planşet", mso:"Yoxlama işi (KSQ) · planşet", homeTablet:"Evdə · planşet", homePhone:"Evdə · telefon", soon:"Tezliklə"},
+  nav:{s1:"S1 · Ana səhifə · planşet", s1b:"S1 → Dərs başladı", s2:"S2 · Isınma", s3:"S3 · İzah", s4:"S4 · Məşq", s5:"S5 · Dəftərin fotosu", s6:"S6 · «Alınmır»", s7:"S7 · Refleksiya", s8:"S8 · Dərs bitdi", m1:"M1 · Start gözlənilir", m2:"M2 · Test tapşırığı", m3:"M3 · Test bitdi", s15:"S15 · Ev tapşırığı · planşet", s16:"S16 · Ev tapşırığı təhvil verildi · planşet", s17:"S17 · Mənim tərəqqim · planşet", s18:"S18 · Dərs · baxış", s9:"S9 · Ana səhifə · telefon", s10:"S10 · Ev tapşırığı", s11:"S11 · Ev tapşırığı təhvil verildi", s12:"S12 · Mənim tərəqqim", s13:"S13 · Bufer dərs", s14:"S14 · Diaqnostika"},
+  demoLabel:"Demo", demoReset:"⟳ Ssenarini sıfırla",
+  demo:{s1_start:"▶ Müəllim «Dərsi başlat» düyməsini basdı", s1b_warm:"▶ Müəllim isınmanı başlatdı", s2_reveal:"▶ Müəllim: «Cavabları göstər»", s2_explain:"▶ Müəllim izahı başlatdı", s3_slide:"▶ Müəllim slaydı çevirdi", s3_open:"▶ Müəllim həll üçün tapşırıq açdı", s3_reveal:"▶ Müəllim: «Cavabları göstər»", s3_practice:"▶ Müəllim məşqi başlatdı", s4_reflect:"▶ Müəllim refleksiyanı başlatdı", s6_help:"▶ Müəllim yaxınlaşıb kömək etdi", s7_finish:"▶ Müəllim dərsi bitirdi və ev tapşırığı verdi", s8_evening:"📱 Axşam evdə: telefonu aç", m1_start:"▶ Müəllim yoxlama işini başlatdı", m2_fill:"⚡ Uşağın əvəzinə cavabları doldur (demo)", m2_5min:"⏱ 5 dəqiqə qaldı", m2_finish:"■ Müəllim yoxlama işini bitirdi"},
+  note:{s1:"Punktir düymələr — planşetdən kənar hadisələrin simulyasiyası (müəllimin əməlləri)", s1b:"Planşet gözləyir: isınmanı müəllim ayrıca siqnalla başladır", s2:"Sinif üzrə paylanma müəllimin «Cavabları göstər» siqnalı ilə görünür", s3:"Təqdimat — lövhədə; müəllim frontal tapşırıqları planşetə bir-bir açır", s15:"Ev tapşırığını şagird özü, planşetdə həll edir — müəllim siqnalı olmadan", m1:"Yoxlama işinin bir mərhələsi var — isınma və izah yoxdur; müəllim başladır", m2:"İstənilən ardıcıllıqla həll etmək və cavabları dəyişmək olar; düz/səhv göstərmirik. «Bitir» — yuxarı sağ küncdə, təsdiqlə", m3:"Balı və təhlili göstərmirik: yazılı tapşırıqlar sonra yoxlanılır — nəticələri müəllim bildirəcək"},
+  toast:{signalStart:"Müəllim siqnalı: dərs başladı", pickFirst:"Əvvəlcə planşetdə cavab seç", allTasksOpen:"Mərhələnin bütün tapşırıqları açıldı", teacherNotOpen:"Müəllim hələ tapşırıq açmayıb", pickAnswer:"Əvvəlcə cavab seç", teacherHelped:"Müəllim başa düşməyə kömək etdi", scenarioReset:"Ssenari sıfırlandı", msoStarted:"Yoxlama işi başladı!", msoFilled:"Cavablar dolduruldu", msoTimer:"Planşetdə taymer göründü", msoTimeUp:"Vaxt bitdi — cavablar qeydə alındı", waitTeacher:"Yaxşı, müəllimi gözləyirik", catchUp:"79-cu dərsin tapşırıqlarını açacağıq — tələsmədən, bu qiymətə deyil", cameraLikePractice:"Prototipdə kamera — məşqdəki kimidir (S5)"},
+  phWarm:"Isınma", phExplain:"İzah", phPractice:"Məşq", phReflect:"Refleksiya", phTest:"Yoxlama işi", phHomework:"Ev tapşırığı", phMyProgress:"Mənim tərəqqim",
+  phaseOf:(n)=>`${n} / 4 mərhələ`,
+  shortName:"Aysel", ctxLine:"4-A · 84-cü dərs · Qalıqlı bölmə", studentLineShort:"Aysel · 4-A", greetName:"Salam, Aysel!",
+  hbClasswork:"Sinif işi", todayLesson:"Bugünkü dərs", lessonTitleCard:"84-cü dərs · Qalıqlı bölmə", lessonNotStarted:"Dərs hələ başlamayıb — müəllimi gözləyirik", hbHomework:"Ev tapşırığı", progressMeta:(s)=>`Mövzu xəritəsi${s?" və ulduzlar":""}`,
+  hwSubmitted:"Təhvil verildi", viewBase:"Bax", viewResult:"Nəticəyə bax", solvedN:(n)=>`6 tapşırıqdan ${n}-i həll olunub`, btnContinue:"Davam et →", hwNotStarted:"Qalıqlı bölmə · sabah, 8:00-a qədər", btnStart:"Başla →",
+  lessonStarted:"Dərs başladı!", putAside:"Planşeti bir kənara qoy — müəllimə baxırıq",
+  warmDone:(ok)=>`Isınma tamamlandı: 3-dən ${ok}`, waitExplain:"Müəllimin izaha başlamasını gözləyirik",
+  distCap:"Sinif necə cavab verdi:", distCorrect:"Düz:", distWrong:"Səhv:",
+  fbCorrectWarm:"✓ Düzdür! Afərin!", fbWrongReveal:"Tam yox — düzgün cavab işıqlandırılıb", answerSentWait:"Cavab müəllimə göndərildi — ekranda təhlili gözləyirik", pickHint:"Cavabı seç — müəllim dərhal görəcək", btnNext:"Növbəti →",
+  lookTeacher:"Müəllimə baxırıq", slideCount:(n,t)=>`Slayd ${n} / ${t}`, viewTogether:"🔒 Birlikdə baxırıq", exTaskPill:"✏️ Müəllimdən tapşırıq", exTaskProg:(i,t)=>`İzah · tapşırıq ${i} / ${t}`, fbCorrectShort:"✓ Düzdür!", answerSentWait2:"Cavab müəllimə göndərildi — təhlili gözləyirik",
+  allSolvedTitle:"Bütün məsələlər həll olundu!", allSolvedSub:(ok)=>`Düz həll: planşetdə 2-dən ${ok} + dəftərdə 1 (səhərə yoxlayacağıq)`, soonReflect:"Tezliklə refleksiya — onu müəllim başladacaq", returnBack:"Qayıt:", taskChip:(n)=>`Məsələ ${n} ✗`, pracPillSolve:"✏️ Özümüz həll edirik", pracProg:(i,t,ok)=>`Məsələ ${i} / ${t} · düz həll: ${ok}`, callTeacher:"✋ Müəllimi çağır", taskWritten:(n)=>`Məsələ ${n} · yazılı`, writtenBanner:"Dəftərdə həll et, sonra səhifəni fotoya çək — müəllim səhərə yoxlayacaq", photoBtn:"📷 Həlli fotoya çək", taskNum:(n)=>`Məsələ ${n}`, btnCheck:"Yoxla", fbCorrectKeep:"✓ Düzdür! Belə davam et!", fbWrongPractice:"Hələ yox. Yadına sal: qalıq böləndən kiçikdir. Bir də cəhd et!",
+  camTitle:"📷 Dəftərdəki həlli fotoya çək", camHint:"Səhifəni çərçivəyə yerləşdir", backToTask:"← Məsələyə qayıt", takePhotoTitle:"Foto çək", camGood:"Yaxşı görünür?", retake:"↺ Yenidən çək", sendMore:"Daha bir dənə göndər ✓", sendOne:"Göndər ✓", alreadySent:(n)=>`Artıq göndərilib: ${n} foto. Bu, yeni versiya kimi əlavə olunacaq — köhnələri saxlanılır.`, camDoneMulti:(n)=>`Hazır · ${n} foto göndərildi!`, camDoneOne:"Foto göndərildi!", camDoneSub1:"Səhərə yoxlayacağıq — müəllim həllinin hər addımını görəcək.", camDoneSubMulti:"Bütün versiyalar saxlanıldı — müəllim ən sonuncuya baxacaq.", camDoneSubAddMore:"Həll uzundursa — daha foto əlavə etmək olar.", photoVersion:(k,last)=>`Versiya ${k}${last?" · sonuncu":""}`, addPhoto:"📷 Daha foto əlavə et", continuePractice:"Məşqə davam et →",
+  teacherKnows:"Müəllim artıq bilir!", queuePos:(p)=>`Sən növbədə <b>${p}.</b>-sən — müəllim tezliklə gələcək`, stuckSub:"Gözləyərkən — həll etməyə davam edə bilərsən. Bu məsələyə qayıdacaqsan: o, ✗ ilə işarələnib.", tryAgain:"Bir də cəhd edərəm 💪", solveOn:"Həll etməyə davam →", waitTeacherBtn:"Müəllimi gözləyərəm",
+  reflSentCrit:"Dərsi qiymətləndirdiyin və dürüst özünüqiymətləndirmə üçün sağ ol — bu, gücünə uyğun tapşırıqlar seçməyə kömək edəcək", reflSentEmoji:"Müəllim sinfin dərsi necə qəbul etdiyini görəcək", reflThanks:"Paylaşdığın üçün sağ ol!", reflTeacherFinish:"Müəllim dərsi bitirəcək — və yekun görünəcək", reflCritTitle:"Özünü «Qalıqlı bölmə»<br>mövzusunda qiymətləndir", reflCritSub:"Dürüst cavab — bu əladır: onda tapşırıqlar tam gücünə uyğun olacaq", btnSend:"Göndər", reflEmojiTitle:"Bugünkü dərs necə idi?", reflEmojiSub:"İstənilən cavab vacibdir — belə dərslər daha maraqlı olacaq",
+  lessonDoneName:"Dərs bitdi, Aysel!", statTasksSolved:"məsələ həll edildi", statFirstTry:"1-ci cəhddən düz", statCheckMorning:"həll səhərə yoxlanılacaq", hwAssigned:"Ev tapşırığı təyin olundu", hwAssignedMeta:"Sabah 8:00-a qədər et · 6 tapşırıq · Qalıqlı bölmə", tapForHw:"Ev tapşırığına keçmək üçün toxun",
+  msoTimer:"⏱ Qalıb 4:37", msoPill:"📝 Yoxlama işi", msoAnsC:(n,t)=>`Cavablanıb: ${t}-dən ${n}`, finishBtn:"Bitir", m1Title:"Bu gün — yoxlama işi", m1Sub:(n)=>`Qalıqlı bölmə · ${n} tapşırıq`, m1Sub2:"İstənilən ardıcıllıqla həll et və tələsmə: testi bitirənə qədər istənilən cavabı dəyişmək olar.", m1Wait:"Müəllimin başlamasını gözləyirik", ptsPill:(p,w)=>`${p} bal${w?" · meyarlarla":""}`, msoWrittenBanner:"Dəftərdə həll et və həlli fotoya çək — addımlarla qiymətləndiriləcək", photoAttached:"🖼️ Həllin fotosu əlavə olundu", msoEmptyTitle:(n)=>`${n} tapşırığa cavab verilməyib`, msoSureFinish:"Bitirmək istədiyinə əminsən?", msoBackToTest:"← Yoxlama işinə qayıt", msoNoChange:"Bitirdikdən sonra cavabları dəyişmək olmaz.", msoAnsRecorded:"✓ Cavab yazıldı · test bitənə qədər dəyişmək olar", msoWaitCheck:"Düz ya yox — yoxlamadan sonra biləcəksən", btnBack:"← Geri", m3TitleTeacher:"Vaxt bitdi!", m3TitleSelf:"Test təhvil verildi!", m3ByTeacher:"Müəllim yoxlama işini bitirdi — cavabların özü göndərildi", m3BySelf:(n,t)=>`Cavabların göndərildi · cavablanıb: ${t}-dən ${n}`, m3Results:"Nəticələri müəllim növbəti dərsdə bildirəcək", m3Encourage:"Çalışdığın üçün afərin! Yazılı həllə müəllim addım-addım baxacaq.",
+  hwPill:"📒 Ev tapşırığı · Qalıqlı bölmə", hwProg:(i,t)=>`Tapşırıq ${i} / ${t} · sabah, 8:00-a qədər`, fbRightHighlighted:"Düzgün cavab işıqlandırılıb", answerSavedTeacher:"✓ Cavab saxlanıldı · müəllim yoxlayacaq", canPause:"Ara verə bilərsən — irəliləyiş saxlanılır", finishWord:"Bitir", nextWord:"Növbəti",
+  allSentTitle:"6 tapşırığın hamısı göndərildi!", allSentSub:"Müəllim səhərə yoxlayacaq və dərsdə geri-əlaqə verəcək.", toHome:"Ana səhifəyə", solvedOf6:(ok)=>`Düz həll: 6-dan ${ok}`, gradeText:(s)=>s===3?"Əla iş!":s===2?"Yaxşı! Bir-iki səhv var — gəl birlikdə təhlil edək":"Gəl səhvləri birlikdə təhlil edək", teacherSeesMorning:"Müəllim səhər nəticəni görəcək", errorReview:"Səhvin təhlili", correctLabel:"Düzgün:", hintMultiply:"İpucu: özünü vurma ilə yoxla — və unutma ki, qalıq böləndən kiçikdir",
+  myLessons:"📚 Mənim dərslərim", starsForHw:"★ — ev tapşırığına görə", checkForHw:"✓ — ev tapşırığı təhvil verilib", statusNow:"İndi öyrənirik", statusLocked:"Sonra açılacaq", statusMissed:"Ev tapşırığı təhvil verilməyib", statusDone:"Keçilib", tapToReview:" · yenidən baxmaq üçün toxun", missedHw:"📥 Buraxılmış ev tapşırıqları", catchUp:"Çatdır", noMissed:"Buraxılmış ev tapşırığı yoxdur — afərin! 🎉",
+  yourAnswer:"Cavabın:", revCorrect:"düz", writtenSolvedVal:"📷 Dəftərdə həll olunub — foto müəllimə göndərilib", explainH:"▶ İzah", slideK:(n)=>`Slayd ${n}`, reflH:"☺ Refleksiya", howLesson:"Dərs necə idi", warmupH:(ok,t)=>`⚡ Isınma · ${t}-dən ${ok} düz`, practiceH:"✎ Məşq", homeworkRevH:(ok,t)=>`📒 Ev tapşırığı · ${t}-dən ${ok} düz`, classworkH:"📚 Sinif işi", reviewMode:"👁 Baxış rejimi", reviewProg:"Dərsi belə keçdin · yalnız baxırıq, heç nə dəyişmirik",
+  pHwTitle:"Ev tapşırığı · Qalıqlı bölmə", deadlineTom:"sabah 8:00-a qədər", hwSubmittedResult:"Təhvil verildi! Nəticə: 6-dan 5 ✓", hwSentTeacherCheck:"Göndərildi — müəllim yoxlayacaq", continueWord:"Davam et", startWord:"Başla", nextLesson:"Növbəti dərs: sabah, 9:00", lessonInClass:"Dərs sinifdə keçir, planşetdə — müəllim onu başladanda açılır", afterLesson:"Dərsin yekununa görə", hwOnTimeV:"✅ 8-dən 7", hwOnTimeL:"ev tapşırığı vaxtında təhvil verilib", hwMissedV:"📥 1", hwMissedL:"buraxılıb — çatdırmaq olar", nowTopic:"İndi: Qalıqlı bölmə",
+  pHwGreet:"Ev tapşırığı", taskIof6:(n)=>`Tapşırıq ${n} / 6`,
+  pHwSentTitle:"Ev tapşırığı göndərildi!", allSentShort:"6 tapşırığın hamısı göndərildi", pHwDoneTitle:"Ev tapşırığı təhvil verildi!",
+  missedHwPhone:"Buraxılmış ev tapşırıqları",
+  s13title:"Sənin xüsusi dərsin", s13p1:"İki həftədə bir — xüsusi olaraq sənin üçün toplanan macəra-dərs.<br>Sistem sənin mövzu xəritənə görə tapşırıqlar seçəcək: boşluqları bağlamaq, bazanı möhkəmləndirmək və ya çətin məsələlər götürmək.", s13p2:"Nümunə · bufer dərslər (A/B/C trekləri) — v1 əhatəsindən kənar", s14title:"Bilik yoxlaması", s14p1:"İldə 3 dəfə — xüsusi rejim: ipucusuz və sonadək cavabların yoxlanışı olmadan.<br>Nəticəni hamı bitirəndə görəcəksən.", s14p2:"Nümunə · diaqnostika (monitorinq simulyasiyası) — v1 əhatəsindən kənar",
+  warmup:[
+    {q:"17 ÷ 5 = ?", opts:["3, qalıq 2","2, qalıq 7","3, qalıq 1","4, qalıq 0"]},
+    {q:"23 ÷ 4 = ?", opts:["4, qalıq 7","5, qalıq 3","6, qalıq 1","5, qalıq 2"]},
+    {q:"31 ÷ 6 = ?", opts:["4, qalıq 7","6, qalıq 0","5, qalıq 1","5, qalıq 2"]},
+  ],
+  slides:[
+    {t:"Qalıqlı bölmə", body:`<div class="formula">17 ÷ 5 = 3 (qal. 2)</div><div class="sub" style="font-size:17px">Bəzən bərabər bölmək mümkün olmur —<br>və onda <b>qalıq</b> yaranır</div>`},
+    {t:"17 konfet, hər paketə 5 dənə", body:`<div class="dots-vis">
+      <div class="dgroup"><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="dgroup"><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="dgroup"><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="dgroup rest"><i></i><i></i></div>
+    </div><div class="sub" style="font-size:17px">3 tam paket və <b style="color:#B9871F">2 konfet qaldı</b></div>`},
+    {t:"Əsas qayda", body:`<div class="formula">qalıq &lt; bölən</div><div class="sub" style="font-size:17px">Qalıq həmişə böldüyümüz ədəddən kiçikdir.<br>Əgər böyük alınıbsa — bir daha bölmək olar!</div>`},
+  ],
+  extask:[
+    {q:"28 ÷ 6 = ?", opts:["4, qalıq 4","5, qalıq 2","4, qalıq 2"]},
+    {q:"6-ya bölərkən qalıq 6-ya bərabər ola bilərmi?", opts:["bəli","xeyr"]},
+  ],
+  practice:[
+    {text:"Leylanın 26 konfeti var. Onları hər paketə 6 konfet olmaqla düzür. Neçə tam paket alınır və neçə konfet qalır?", fields:[{l:"Paket"},{l:"Qalır"}]},
+    {text:"Bir qutuya 8 maşın yığmaq olar. Timurun 35 maşını var. O, neçə qutu doldurur və neçə maşın qutusuz qalır?", fields:[{l:"Qutu"},{l:"Qalır"}]},
+    {text:"Dəftərdə həll et: 74 ÷ 9. Həlli addım-addım yaz — özünü vurma ilə yoxla.", fields:[]},
+  ],
+  homework:[
+    {q:"39 ÷ 5 = ?", opts:["7, qalıq 4","8, qalıq 1","7, qalıq 5"]},
+    {q:"25 ÷ 7 = ?", opts:["3, qalıq 4","4, qalıq 3","3, qalıq 5"]},
+    {q:"50 ÷ 8 = ?", opts:["5, qalıq 10","6, qalıq 2","7, qalıq 6"]},
+    {q:"19 ÷ 2 = ?", opts:["9, qalıq 1","8, qalıq 3","9, qalıq 0"]},
+    {q:"44 ÷ 6 = ?", opts:["6, qalıq 8","7, qalıq 2","8, qalıq 4"]},
+    {q:"61 ÷ 10 = ?", opts:["6, qalıq 1","5, qalıq 11","6, qalıq 0"]},
+  ],
+  mso:[
+    {q:"52 ÷ 7 = ?", opts:["7, qalıq 3","6, qalıq 10","8, qalıq 4"]},
+    {q:"9-a bölərkən ən böyük qalıq neçə ola bilər?", opts:["9","8","1"]},
+    {q:"Muradın 43 stikeri var. Onları dostlarına hər birinə 5 dənə paylayır. Neçə dosta stiker çatır və Muradda neçə stiker qalır?", fields:[{l:"Dost"},{l:"Qalır"}]},
+    {q:"Liftə 6 nəfər yerləşir. 27 nəfəri daşımaq üçün lift neçə dəfə qalxmalıdır?", fields:[{l:"Qalxma"}]},
+    {q:"Məsələni həll et və həlli addım-addım yaz: teatra 94 şagird hər birində 12 yer olan avtobuslarla gedir. Neçə avtobus sifariş etmək lazımdır? Cavabı izah et.", crit:["Düzgün əməl seçilib — qalıqlı bölmə","Qismət və qalıq düzgün tapılıb","Cavab qalıq nəzərə alınmaqla verilib (8 avtobus)"]},
+  ],
+  feedback:{topic:"Qalıqlı bölmə", good:"Neçə tam qrup alındığını və qalığın nə olduğunu inamla tapırsan.", grow:"Vurma ilə yoxlamanı bir az da məşq etmək yaxşı olar — buna görə ev tapşırığında oxşar məsələlər var."},
+  reflcrit:["Natamam qismət və qalığı tapıram","Bölməni vurma ilə yoxlayıram","Qalığın böləndən kiçik olduğunu yadda saxlayıram"],
+  critlevels:[["😕","Başa düşmədim"],["🙂","Özüm başa düşürəm"],["🤩","Başa düşürəm və başqasına öyrədə bilərəm"]],
+  topics:[{nm:"İkirəqəmli ədədə vurma"},{nm:"Düzbucaqlının sahəsi"},{nm:"Bir naməlumlu tənliklər"},{nm:"Sürət, zaman, məsafə", why:"79-cu dərs · 12 may · xəstə idi"},{nm:"Qalıqlı bölmə"},{nm:"Çoxrəqəmli ədədlərin bölünməsi"},{nm:"Kəsrlər: tanışlıq"}],
+  reflemojis:[["😴","Darıxdırıcı"],["😐","Elə də deyil"],["🙂","Xoşuma gəldi"],["🤩","Çox əla"]],
+};
+
+/* ---------------- English ---------------- */
+LOCALE.en={
+  html:"en",
+  role:"Student", chip:"Aysel Mammadova · 4-A", lessonHdr:"Lesson 84: Division with remainder",
+  dateHdr:"Thu, 29 May", avatarInit:"AM",
+  langLabel:"Lang", stageLabel:"Stage", ph1:"Phase 1", ph2:"Phase 2", ph3:"Final",
+  stub:"soon",
+  navFoot:"Prototype · mock data<br>Lesson and class — same as in the teacher prototype",
+  navGroup:{inclass:"In class · tablet", mso:"Assessment · tablet", homeTablet:"At home · tablet", homePhone:"At home · phone", soon:"Soon"},
+  nav:{s1:"S1 · Home · tablet", s1b:"S1 → Lesson started", s2:"S2 · Warm-up", s3:"S3 · Explanation", s4:"S4 · Practice", s5:"S5 · Notebook photo", s6:"S6 · «I'm stuck»", s7:"S7 · Reflection", s8:"S8 · Lesson finished", m1:"M1 · Waiting to start", m2:"M2 · Test question", m3:"M3 · Test finished", s15:"S15 · Homework · tablet", s16:"S16 · Homework submitted · tablet", s17:"S17 · My progress · tablet", s18:"S18 · Lesson · review", s9:"S9 · Home · phone", s10:"S10 · Homework", s11:"S11 · Homework submitted", s12:"S12 · My progress", s13:"S13 · Buffer lesson", s14:"S14 · Diagnostics"},
+  demoLabel:"Demo", demoReset:"⟳ Reset scenario",
+  demo:{s1_start:"▶ Teacher pressed «Start lesson»", s1b_warm:"▶ Teacher started the warm-up", s2_reveal:"▶ Teacher: «Show answers»", s2_explain:"▶ Teacher started the explanation", s3_slide:"▶ Teacher flipped the slide", s3_open:"▶ Teacher opened a task to solve", s3_reveal:"▶ Teacher: «Show answers»", s3_practice:"▶ Teacher started the practice", s4_reflect:"▶ Teacher started the reflection", s6_help:"▶ Teacher came over and helped", s7_finish:"▶ Teacher finished the lesson and gave homework", s8_evening:"📱 In the evening at home: open the phone", m1_start:"▶ Teacher started the assessment", m2_fill:"⚡ Fill answers for the student (demo)", m2_5min:"⏱ 5 minutes left", m2_finish:"■ Teacher ended the assessment"},
+  note:{s1:"Dashed buttons simulate events outside the tablet (teacher actions)", s1b:"The tablet waits: the teacher starts the warm-up with a separate signal", s2:"The class distribution appears on the teacher's «Show answers» signal", s3:"The presentation is on the board; the teacher opens frontal tasks on the tablet one by one", s15:"The student does the homework on their own, on the tablet — no teacher signals", m1:"The assessment has one stage — no warm-up or explanation; the teacher starts it", m2:"You can solve in any order and change answers; we don't show right/wrong. «Finish» is in the top-right corner, with confirmation", m3:"We don't show the score or breakdown: written tasks are checked later — the teacher will report results"},
+  toast:{signalStart:"Teacher signal: the lesson has started", pickFirst:"First pick an answer on the tablet", allTasksOpen:"All tasks of this stage are open", teacherNotOpen:"The teacher hasn't opened a task yet", pickAnswer:"First pick an answer", teacherHelped:"The teacher helped you figure it out", scenarioReset:"Scenario reset", msoStarted:"The assessment has started!", msoFilled:"Answers filled in", msoTimer:"A timer appeared on the tablet", msoTimeUp:"Time's up — answers recorded", waitTeacher:"OK, waiting for the teacher", catchUp:"We'll open Lesson 79 tasks — no rush, it's not for a grade", cameraLikePractice:"In the prototype the camera is like in practice (S5)"},
+  phWarm:"Warm-up", phExplain:"Explanation", phPractice:"Practice", phReflect:"Reflection", phTest:"Assessment", phHomework:"Homework", phMyProgress:"My progress",
+  phaseOf:(n)=>`phase ${n} of 4`,
+  shortName:"Aysel", ctxLine:"4-A · Lesson 84 · Division with remainder", studentLineShort:"Aysel · 4-A", greetName:"Hi, Aysel!",
+  hbClasswork:"Classwork", todayLesson:"Today's lesson", lessonTitleCard:"Lesson 84 · Division with remainder", lessonNotStarted:"The lesson hasn't started yet — waiting for the teacher", hbHomework:"Homework", progressMeta:(s)=>`Topic map${s?" and stars":""}`,
+  hwSubmitted:"Submitted", viewBase:"View", viewResult:"View result", solvedN:(n)=>`Solved ${n} of 6 tasks`, btnContinue:"Continue →", hwNotStarted:"Division with remainder · by tomorrow, 8:00", btnStart:"Start →",
+  lessonStarted:"The lesson has started!", putAside:"Put the tablet aside — let's look at the teacher",
+  warmDone:(ok)=>`Warm-up done: ${ok} of 3`, waitExplain:"Waiting for the teacher to start the explanation",
+  distCap:"How the class answered:", distCorrect:"Correct:", distWrong:"Wrong:",
+  fbCorrectWarm:"✓ Correct! Well done!", fbWrongReveal:"Not quite — the correct answer is highlighted", answerSentWait:"Answer sent to the teacher — waiting for the breakdown on screen", pickHint:"Pick an answer — the teacher will see it right away", btnNext:"Next →",
+  lookTeacher:"Let's look at the teacher", slideCount:(n,t)=>`Slide ${n} of ${t}`, viewTogether:"🔒 Looking together", exTaskPill:"✏️ Task from the teacher", exTaskProg:(i,t)=>`Explanation · task ${i} of ${t}`, fbCorrectShort:"✓ Correct!", answerSentWait2:"Answer sent to the teacher — waiting for the breakdown",
+  allSolvedTitle:"All problems solved!", allSolvedSub:(ok)=>`Correct: ${ok} of 2 on the tablet + 1 in the notebook (we'll check by morning)`, soonReflect:"Reflection soon — the teacher will start it", returnBack:"Come back:", taskChip:(n)=>`Problem ${n} ✗`, pracPillSolve:"✏️ We solve it ourselves", pracProg:(i,t,ok)=>`Problem ${i} of ${t} · correct: ${ok}`, callTeacher:"✋ Call the teacher", taskWritten:(n)=>`Problem ${n} · written`, writtenBanner:"Solve in your notebook, then photograph the page — the teacher will check by morning", photoBtn:"📷 Photograph the solution", taskNum:(n)=>`Problem ${n}`, btnCheck:"Check", fbCorrectKeep:"✓ Correct! Keep it up!", fbWrongPractice:"Not yet. Remember: the remainder is smaller than the divisor. Try again!",
+  camTitle:"📷 Photograph the solution from your notebook", camHint:"Place the page inside the frame", backToTask:"← Back to the problem", takePhotoTitle:"Take a photo", camGood:"Is it clear?", retake:"↺ Retake", sendMore:"Send another ✓", sendOne:"Send ✓", alreadySent:(n)=>`Already sent: ${n} photo(s). This will be added as a new version — the old ones are kept.`, camDoneMulti:(n)=>`Done · ${n} photos sent!`, camDoneOne:"Photo sent!", camDoneSub1:"We'll check by morning — the teacher will see every step of your solution.", camDoneSubMulti:"All versions are saved — the teacher will look at the latest one.", camDoneSubAddMore:"If the solution is long — you can add more photos.", photoVersion:(k,last)=>`Version ${k}${last?" · latest":""}`, addPhoto:"📷 Add another photo", continuePractice:"Continue practice →",
+  teacherKnows:"The teacher already knows!", queuePos:(p)=>`You're <b>#${p}</b> in line — the teacher will come soon`, stuckSub:"While you wait — you can keep solving. You'll come back to this problem: it's marked ✗.", tryAgain:"I'll try again 💪", solveOn:"Keep solving →", waitTeacherBtn:"I'll wait for the teacher",
+  reflSentCrit:"Thanks for rating the lesson and for the honest self-assessment — it helps pick tasks that fit you", reflSentEmoji:"The teacher will see how the class liked the lesson", reflThanks:"Thanks for sharing!", reflTeacherFinish:"The teacher will finish the lesson — and the summary will appear", reflCritTitle:"Rate yourself on the topic<br>«Division with remainder»", reflCritSub:"An honest answer is great: then the tasks will be just right for you", btnSend:"Send", reflEmojiTitle:"How was today's lesson?", reflEmojiSub:"Any answer matters — it makes lessons more interesting",
+  lessonDoneName:"Lesson complete, Aysel!", statTasksSolved:"problems solved", statFirstTry:"correct on the 1st try", statCheckMorning:"solution to be checked by morning", hwAssigned:"Homework assigned", hwAssignedMeta:"Do it by tomorrow, 8:00 · 6 tasks · Division with remainder", tapForHw:"Tap to go to the homework",
+  msoTimer:"⏱ 4:37 left", msoPill:"📝 Assessment", msoAnsC:(n,t)=>`Answered: ${n} of ${t}`, finishBtn:"Finish", m1Title:"Today — an assessment", m1Sub:(n)=>`Division with remainder · ${n} tasks`, m1Sub2:"Solve in any order and don't rush: until you finish the test, any answer can be changed.", m1Wait:"Waiting for the teacher to start", ptsPill:(p,w)=>`${p} ${p===1?"point":"points"}${w?" · by criteria":""}`, msoWrittenBanner:"Solve in your notebook and photograph the solution — it will be graded step by step", photoAttached:"🖼️ Solution photo attached", msoEmptyTitle:(n)=>n===1?"1 task has no answer":`${n} tasks have no answers`, msoSureFinish:"Are you sure you want to finish?", msoBackToTest:"← Back to the test", msoNoChange:"After finishing, answers can't be changed.", msoAnsRecorded:"✓ Answer recorded · can be changed until the test ends", msoWaitCheck:"Right or wrong — you'll find out after checking", btnBack:"← Back", m3TitleTeacher:"Time's up!", m3TitleSelf:"Test submitted!", m3ByTeacher:"The teacher ended the assessment — your answers were sent automatically", m3BySelf:(n,t)=>`Your answers are sent · answered: ${n} of ${t}`, m3Results:"The teacher will share the results in the next lesson", m3Encourage:"Well done for trying! The teacher will look at the written solution step by step.",
+  hwPill:"📒 Homework · Division with remainder", hwProg:(i,t)=>`Task ${i} of ${t} · by tomorrow, 8:00`, fbRightHighlighted:"The correct answer is highlighted", answerSavedTeacher:"✓ Answer saved · the teacher will check", canPause:"You can pause — progress is saved", finishWord:"Finish", nextWord:"Next",
+  allSentTitle:"All 6 tasks sent!", allSentSub:"The teacher will check by morning and give feedback in class.", toHome:"Home", solvedOf6:(ok)=>`Correct: ${ok} of 6`, gradeText:(s)=>s===3?"Excellent work!":s===2?"Good! A couple of mistakes — let's go over them":"Let's go over the mistakes together", teacherSeesMorning:"The teacher will see your result in the morning", errorReview:"Mistake review", correctLabel:"Correct:", hintMultiply:"Hint: check yourself with multiplication — and remember the remainder is smaller than the divisor",
+  myLessons:"📚 My lessons", starsForHw:"★ — for homework", checkForHw:"✓ — homework submitted", statusNow:"Learning now", statusLocked:"Opens later", statusMissed:"Homework not submitted", statusDone:"Completed", tapToReview:" · tap to review", missedHw:"📥 Missed homework", catchUp:"Catch up", noMissed:"No missed homework — well done! 🎉",
+  yourAnswer:"Your answer:", revCorrect:"correct", writtenSolvedVal:"📷 Solved in the notebook — photo sent to the teacher", explainH:"▶ Explanation", slideK:(n)=>`Slide ${n}`, reflH:"☺ Reflection", howLesson:"How the lesson was", warmupH:(ok,t)=>`⚡ Warm-up · ${ok} of ${t} correct`, practiceH:"✎ Practice", homeworkRevH:(ok,t)=>`📒 Homework · ${ok} of ${t} correct`, classworkH:"📚 Classwork", reviewMode:"👁 Review mode", reviewProg:"This is how you did the lesson · view only, nothing changes",
+  pHwTitle:"Homework · Division with remainder", deadlineTom:"by tomorrow 8:00", hwSubmittedResult:"Submitted! Result: 5 of 6 ✓", hwSentTeacherCheck:"Sent — the teacher will check", continueWord:"Continue", startWord:"Start", nextLesson:"Next lesson: tomorrow, 9:00", lessonInClass:"The lesson happens in class; on the tablet it opens when the teacher starts it", afterLesson:"After the lesson", hwOnTimeV:"✅ 7 of 8", hwOnTimeL:"homework submitted on time", hwMissedV:"📥 1", hwMissedL:"missed — you can catch up", nowTopic:"Now: Division with remainder",
+  pHwGreet:"Homework", taskIof6:(n)=>`Task ${n} of 6`,
+  pHwSentTitle:"Homework sent!", allSentShort:"All 6 tasks sent", pHwDoneTitle:"Homework submitted!",
+  missedHwPhone:"Missed homework",
+  s13title:"Your special lesson", s13p1:"Every two weeks — an adventure lesson put together just for you.<br>The system will pick tasks from your topic map: close gaps, reinforce the basics, or take on harder problems.", s13p2:"Placeholder · buffer lessons (tracks A/B/C) — out of v1 scope", s14title:"Knowledge check", s14p1:"3 times a year — a special mode: no hints and no answer checking until the very end.<br>You'll see the result when everyone finishes.", s14p2:"Placeholder · diagnostics (monitoring simulation) — out of v1 scope",
+  warmup:[
+    {q:"17 ÷ 5 = ?", opts:["3, rem. 2","2, rem. 7","3, rem. 1","4, rem. 0"]},
+    {q:"23 ÷ 4 = ?", opts:["4, rem. 7","5, rem. 3","6, rem. 1","5, rem. 2"]},
+    {q:"31 ÷ 6 = ?", opts:["4, rem. 7","6, rem. 0","5, rem. 1","5, rem. 2"]},
+  ],
+  slides:[
+    {t:"Division with remainder", body:`<div class="formula">17 ÷ 5 = 3 (r. 2)</div><div class="sub" style="font-size:17px">Sometimes you can't split evenly —<br>and then a <b>remainder</b> appears</div>`},
+    {t:"17 candies, 5 per bag", body:`<div class="dots-vis">
+      <div class="dgroup"><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="dgroup"><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="dgroup"><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="dgroup rest"><i></i><i></i></div>
+    </div><div class="sub" style="font-size:17px">3 full bags and <b style="color:#B9871F">2 candies left</b></div>`},
+    {t:"The main rule", body:`<div class="formula">remainder &lt; divisor</div><div class="sub" style="font-size:17px">The remainder is always smaller than the number you divide by.<br>If it's bigger — you can divide once more!</div>`},
+  ],
+  extask:[
+    {q:"28 ÷ 6 = ?", opts:["4, rem. 4","5, rem. 2","4, rem. 2"]},
+    {q:"When dividing by 6, can the remainder be 6?", opts:["yes","no"]},
+  ],
+  practice:[
+    {text:"Leyla has 26 candies. She packs them into bags of 6. How many full bags will there be and how many candies will be left?", fields:[{l:"Bags"},{l:"Left"}]},
+    {text:"A box holds 8 toy cars. Timur has 35 cars. How many boxes will he fill and how many cars will be left without a box?", fields:[{l:"Boxes"},{l:"Left"}]},
+    {text:"Solve in your notebook: 74 ÷ 9. Write the solution step by step — check yourself with multiplication.", fields:[]},
+  ],
+  homework:[
+    {q:"39 ÷ 5 = ?", opts:["7, rem. 4","8, rem. 1","7, rem. 5"]},
+    {q:"25 ÷ 7 = ?", opts:["3, rem. 4","4, rem. 3","3, rem. 5"]},
+    {q:"50 ÷ 8 = ?", opts:["5, rem. 10","6, rem. 2","7, rem. 6"]},
+    {q:"19 ÷ 2 = ?", opts:["9, rem. 1","8, rem. 3","9, rem. 0"]},
+    {q:"44 ÷ 6 = ?", opts:["6, rem. 8","7, rem. 2","8, rem. 4"]},
+    {q:"61 ÷ 10 = ?", opts:["6, rem. 1","5, rem. 11","6, rem. 0"]},
+  ],
+  mso:[
+    {q:"52 ÷ 7 = ?", opts:["7, rem. 3","6, rem. 10","8, rem. 4"]},
+    {q:"What is the largest remainder you can get when dividing by 9?", opts:["9","8","1"]},
+    {q:"Murad has 43 stickers. He gives them to friends, 5 each. How many friends will get stickers and how many stickers will Murad have left?", fields:[{l:"Friends"},{l:"Left"}]},
+    {q:"An elevator holds 6 people. How many times must the elevator go up to carry 27 people?", fields:[{l:"Trips"}]},
+    {q:"Solve the problem and write the solution step by step: 94 students go to the theatre in buses with 12 seats each. How many buses are needed? Explain your answer.", crit:["The right operation is chosen — division with remainder","The quotient and remainder are found correctly","The answer accounts for the remainder (8 buses)"]},
+  ],
+  feedback:{topic:"Division with remainder", good:"You confidently find how many whole groups there are and what the remainder is.", grow:"It's worth practising the multiplication check a bit more — that's why the homework has similar problems."},
+  reflcrit:["I find the quotient and the remainder","I check division with multiplication","I remember the remainder is smaller than the divisor"],
+  critlevels:[["😕","Didn't get it"],["🙂","I understand it myself"],["🤩","I understand and can teach someone"]],
+  topics:[{nm:"Multiplying by a two-digit number"},{nm:"Area of a rectangle"},{nm:"Equations with one unknown"},{nm:"Speed, time, distance", why:"Lesson 79 · 12 May · was off sick"},{nm:"Division with remainder"},{nm:"Dividing multi-digit numbers"},{nm:"Fractions: introduction"}],
+  reflemojis:[["😴","Boring"],["😐","So-so"],["🙂","Liked it"],["🤩","Really cool"]],
+};
+
+/* ---------------- Русский ---------------- */
+LOCALE.ru={
+  html:"ru",
+  role:"Ученик", chip:"Айсель Мамедова · 4-А", lessonHdr:"Урок 84: Деление с остатком",
+  dateHdr:"29 мая, чт", avatarInit:"АМ",
+  langLabel:"Язык", stageLabel:"Этап", ph1:"Фаза 1", ph2:"Фаза 2", ph3:"Финал",
+  stub:"заглушка",
+  navFoot:"Прототип · мок-данные<br>Урок и класс — те же, что в прототипе учителя",
+  navGroup:{inclass:"В классе · планшет", mso:"Контрольная (МСО) · планшет", homeTablet:"Дома · планшет", homePhone:"Дома · мобильный", soon:"Скоро"},
+  nav:{s1:"S1 · Главная · планшет", s1b:"S1 → Урок начался", s2:"S2 · Разминка", s3:"S3 · Объяснение", s4:"S4 · Практика", s5:"S5 · Фото тетради", s6:"S6 · «Не получается»", s7:"S7 · Рефлексия", s8:"S8 · Урок завершён", m1:"M1 · Ожидание старта", m2:"M2 · Задание теста", m3:"M3 · Тест завершён", s15:"S15 · Домашка · планшет", s16:"S16 · Домашка сдана · планшет", s17:"S17 · Мой прогресс · планшет", s18:"S18 · Урок · просмотр", s9:"S9 · Главная · телефон", s10:"S10 · Домашка", s11:"S11 · Домашка сдана", s12:"S12 · Мой прогресс", s13:"S13 · Буферный урок", s14:"S14 · Диагностика"},
+  demoLabel:"Демо", demoReset:"⟳ Сбросить сценарий",
+  demo:{s1_start:"▶ Учитель нажал «Начать урок»", s1b_warm:"▶ Учитель начал разминку", s2_reveal:"▶ Учитель: «Показать ответы»", s2_explain:"▶ Учитель начал объяснение", s3_slide:"▶ Учитель перелистнул слайд", s3_open:"▶ Учитель открыл задание для решения", s3_reveal:"▶ Учитель: «Показать ответы»", s3_practice:"▶ Учитель начал практику", s4_reflect:"▶ Учитель запустил рефлексию", s6_help:"▶ Учитель подошёл и помог", s7_finish:"▶ Учитель завершил урок и выдал ДЗ", s8_evening:"📱 Вечером дома: открыть телефон", m1_start:"▶ Учитель запустил контрольную", m2_fill:"⚡ Заполнить ответы за ребёнка (демо)", m2_5min:"⏱ Осталось 5 минут", m2_finish:"■ Учитель завершил контрольную"},
+  note:{s1:"Кнопки с пунктиром — симуляция событий вне планшета (действия учителя)", s1b:"Планшет ждёт: разминку запускает учитель отдельным сигналом", s2:"Распределение по классу появляется по сигналу учителя «Показать ответы»", s3:"Презентация — на доске; учитель открывает фронтальные задания на планшет по одному", s15:"Домашку ученик решает сам, на планшете — без сигналов учителя", m1:"У контрольной один этап — без разминки и объяснения; запускает учитель", m2:"Решать можно в любом порядке и менять ответы; верно/неверно не показываем. «Завершить» — в правом верхнем углу, с подтверждением", m3:"Балл и разбор не показываем: письменные задания проверяются позже — результаты сообщит учитель"},
+  toast:{signalStart:"Сигнал учителя: урок начался", pickFirst:"Сначала выбери ответ на планшете", allTasksOpen:"Все задания этапа открыты", teacherNotOpen:"Учитель ещё не открыл задание", pickAnswer:"Сначала выбери ответ", teacherHelped:"Учитель помог разобраться", scenarioReset:"Сценарий сброшен", msoStarted:"Контрольная началась!", msoFilled:"Ответы заполнены", msoTimer:"На планшете появился таймер", msoTimeUp:"Время вышло — ответы зафиксированы", waitTeacher:"Хорошо, ждём учителя", catchUp:"Откроем задания урока 79 — без спешки, это не на оценку", cameraLikePractice:"В прототипе камера — как в практике (S5)"},
+  phWarm:"Разминка", phExplain:"Объяснение", phPractice:"Практика", phReflect:"Рефлексия", phTest:"Контрольная", phHomework:"Домашняя работа", phMyProgress:"Мой прогресс",
+  phaseOf:(n)=>`фаза ${n} из 4`,
+  shortName:"Айсель", ctxLine:"4-А · Урок 84 · Деление с остатком", studentLineShort:"Айсель · 4-А", greetName:"Привет, Айсель!",
+  hbClasswork:"Классная работа", todayLesson:"Сегодняшний урок", lessonTitleCard:"Урок 84 · Деление с остатком", lessonNotStarted:"Урок ещё не начался — ждём учителя", hbHomework:"Домашняя работа", progressMeta:(s)=>`Карта тем${s?" и звёзды":""}`,
+  hwSubmitted:"Сдано", viewBase:"Посмотреть", viewResult:"Посмотреть результат", solvedN:(n)=>`Решено ${n} из 6 заданий`, btnContinue:"Продолжить →", hwNotStarted:"Деление с остатком · до завтра, 8:00", btnStart:"Начать →",
+  lessonStarted:"Урок начался!", putAside:"Отложи планшет — смотрим на учителя",
+  warmDone:(ok)=>`Разминка пройдена: ${ok} из 3`, waitExplain:"Ждём, когда учитель начнёт объяснение",
+  distCap:"Как ответил класс:", distCorrect:"Верно:", distWrong:"Неверно:",
+  fbCorrectWarm:"✓ Верно! Молодец!", fbWrongReveal:"Не совсем — правильный ответ подсвечен", answerSentWait:"Ответ отправлен учителю — ждём разбор на экране", pickHint:"Выбери ответ — учитель сразу увидит", btnNext:"Дальше →",
+  lookTeacher:"Смотрим на учителя", slideCount:(n,t)=>`Слайд ${n} из ${t}`, viewTogether:"🔒 Смотрим вместе", exTaskPill:"✏️ Задание от учителя", exTaskProg:(i,t)=>`Объяснение · задание ${i} из ${t}`, fbCorrectShort:"✓ Верно!", answerSentWait2:"Ответ отправлен учителю — ждём разбор",
+  allSolvedTitle:"Все задачи решены!", allSolvedSub:(ok)=>`Решено верно: ${ok} из 2 на планшете + 1 в тетради (проверим к утру)`, soonReflect:"Скоро рефлексия — её запустит учитель", returnBack:"Вернись:", taskChip:(n)=>`Задача ${n} ✗`, pracPillSolve:"✏️ Решаем сами", pracProg:(i,t,ok)=>`Задача ${i} из ${t} · решено верно: ${ok}`, callTeacher:"✋ Позвать учителя", taskWritten:(n)=>`Задача ${n} · письменная`, writtenBanner:"Реши в тетради, потом сфотографируй страницу — учитель проверит к утру", photoBtn:"📷 Сфотографировать решение", taskNum:(n)=>`Задача ${n}`, btnCheck:"Проверить", fbCorrectKeep:"✓ Верно! Так держать!", fbWrongPractice:"Пока не так. Вспомни: остаток меньше делителя. Попробуй ещё раз!",
+  camTitle:"📷 Сфотографируй решение из тетради", camHint:"Помести страницу в рамку", backToTask:"← Назад к задаче", takePhotoTitle:"Сделать фото", camGood:"Хорошо видно?", retake:"↺ Переснять", sendMore:"Отправить ещё ✓", sendOne:"Отправить ✓", alreadySent:(n)=>`Уже отправлено фото: ${n}. Это добавится как новая версия — старые сохранятся.`, camDoneMulti:(n)=>`Готово · ${n} фото отправлено!`, camDoneOne:"Фото отправлено!", camDoneSub1:"Проверим к утру — учитель увидит каждый шаг твоего решения.", camDoneSubMulti:"Все версии сохранены — учитель посмотрит самую свежую.", camDoneSubAddMore:"Если решение длинное — можно добавить ещё фото.", photoVersion:(k,last)=>`Версия ${k}${last?" · последняя":""}`, addPhoto:"📷 Добавить ещё фото", continuePractice:"Продолжить практику →",
+  teacherKnows:"Учитель уже знает!", queuePos:(p)=>`Ты <b>${p}-й</b> в очереди — учитель скоро подойдёт`, stuckSub:"Пока ждёшь — можешь решать дальше. К этой задаче вернёшься: она отмечена ✗.", tryAgain:"Попробую ещё раз 💪", solveOn:"Решать дальше →", waitTeacherBtn:"Подожду учителя",
+  reflSentCrit:"Спасибо за оценку урока и за честную самооценку — это поможет подобрать задания по силам", reflSentEmoji:"Учитель увидит, как классу зашёл урок", reflThanks:"Спасибо, что поделилась!", reflTeacherFinish:"Учитель завершит урок — и появится итог", reflCritTitle:"Оцени себя по теме<br>«Деление с остатком»", reflCritSub:"Честный ответ — это здорово: так задания будут точно по силам", btnSend:"Отправить", reflEmojiTitle:"Как тебе сегодняшний урок?", reflEmojiSub:"Любой ответ важен — так уроки будут интереснее",
+  lessonDoneName:"Урок пройден, Айсель!", statTasksSolved:"задач решено", statFirstTry:"верно с 1-й попытки", statCheckMorning:"решение проверим к утру", hwAssigned:"Назначено домашнее задание", hwAssignedMeta:"Выполни до завтра, 8:00 · 6 заданий · Деление с остатком", tapForHw:"Нажми, чтобы перейти к домашке",
+  msoTimer:"⏱ Осталось 4:37", msoPill:"📝 Контрольная работа", msoAnsC:(n,t)=>`Отвечено: ${n} из ${t}`, finishBtn:"Завершить", m1Title:"Сегодня — контрольная работа", m1Sub:(n)=>`Деление с остатком · ${n} заданий`, m1Sub2:"Решай в любом порядке и не спеши: пока не завершишь тест, любой ответ можно поменять.", m1Wait:"Ждём, когда учитель начнёт", ptsPill:(p,w)=>`${p} ${p===1?"балл":p<5?"балла":"баллов"}${w?" · по критериям":""}`, msoWrittenBanner:"Реши в тетради и сфотографируй решение — его оценят по шагам", photoAttached:"🖼️ Фото решения приложено", msoEmptyTitle:(n)=>`На ${n} ${n===1?"задание не отправлен ответ":(n<5?"задания":"заданий")+" не отправлены ответы"}`, msoSureFinish:"Ты уверен, что хочешь завершить?", msoBackToTest:"← Вернуться к контрольной", msoNoChange:"После завершения ответы изменить нельзя.", msoAnsRecorded:"✓ Ответ записан · можно изменить, пока тест не завершён", msoWaitCheck:"Верно или нет — узнаешь после проверки", btnBack:"← Назад", m3TitleTeacher:"Время вышло!", m3TitleSelf:"Тест сдан!", m3ByTeacher:"Учитель завершил контрольную — твои ответы отправились сами", m3BySelf:(n,t)=>`Твои ответы отправлены · отвечено: ${n} из ${t}`, m3Results:"Результаты учитель сообщит на следующем уроке", m3Encourage:"Ты молодец, что старался! Письменное решение учитель посмотрит по шагам.",
+  hwPill:"📒 Домашняя работа · Деление с остатком", hwProg:(i,t)=>`Задание ${i} из ${t} · до завтра, 8:00`, fbRightHighlighted:"Правильный ответ подсвечен", answerSavedTeacher:"✓ Ответ сохранён · проверит учитель", canPause:"Можно прерваться — прогресс сохранится", finishWord:"Завершить", nextWord:"Дальше",
+  allSentTitle:"Все 6 заданий отправлены!", allSentSub:"Учитель проверит к утру и даст обратную связь на уроке.", toHome:"На главную", solvedOf6:(ok)=>`Решено верно: ${ok} из 6`, gradeText:(s)=>s===3?"Отличная работа!":s===2?"Хорошо! Есть пара ошибок — давай разберём":"Давай разберём ошибки вместе", teacherSeesMorning:"Учитель утром увидит твой результат", errorReview:"Разбор ошибки", correctLabel:"Правильно:", hintMultiply:"Подсказка: проверь себя умножением — и помни, что остаток меньше делителя",
+  myLessons:"📚 Мои уроки", starsForHw:"★ — за домашку", checkForHw:"✓ — ДЗ сдано", statusNow:"Учим сейчас", statusLocked:"Откроется дальше", statusMissed:"Домашка не сдана", statusDone:"Пройдено", tapToReview:" · нажми, чтобы пересмотреть", missedHw:"📥 Пропущенные домашки", catchUp:"Догнать", noMissed:"Пропущенных домашек нет — молодец! 🎉",
+  yourAnswer:"Твой ответ:", revCorrect:"верно", writtenSolvedVal:"📷 Решена в тетради — фото отправлено учителю", explainH:"▶ Объяснение", slideK:(n)=>`Слайд ${n}`, reflH:"☺ Рефлексия", howLesson:"Как тебе урок", warmupH:(ok,t)=>`⚡ Разминка · ${ok} из ${t} верно`, practiceH:"✎ Практика", homeworkRevH:(ok,t)=>`📒 Домашняя работа · ${ok} из ${t} верно`, classworkH:"📚 Классная работа", reviewMode:"👁 Режим просмотра", reviewProg:"Так ты прошёл урок · только смотрим, ничего не меняем",
+  pHwTitle:"Домашка · Деление с остатком", deadlineTom:"до завтра 8:00", hwSubmittedResult:"Сдано! Результат: 5 из 6 ✓", hwSentTeacherCheck:"Отправлено — учитель проверит", continueWord:"Продолжить", startWord:"Начать", nextLesson:"Следующий урок: завтра, 9:00", lessonInClass:"Урок проходит в классе, на планшете — открывается, когда учитель его начнёт", afterLesson:"По итогам урока", hwOnTimeV:"✅ 7 из 8", hwOnTimeL:"домашек сдано в срок", hwMissedV:"📥 1", hwMissedL:"пропущена — можно догнать", nowTopic:"Сейчас: Деление с остатком",
+  pHwGreet:"Домашка", taskIof6:(n)=>`Задание ${n} из 6`,
+  pHwSentTitle:"Домашка отправлена!", allSentShort:"Все 6 заданий отправлены", pHwDoneTitle:"Домашка сдана!",
+  missedHwPhone:"Пропущенные домашки",
+  s13title:"Твой особенный урок", s13p1:"Раз в две недели — урок-приключение, собранный специально для тебя.<br>Система подберёт задания по твоей карте тем: закрыть пробелы, закрепить базу или взять задачи посложнее.", s13p2:"Заглушка · буферные уроки (треки A/B/C) — вне скоупа v1", s14title:"Проверка знаний", s14p1:"3 раза в год — особый режим: без подсказок и без проверки ответов до самого конца.<br>Результат увидишь, когда все закончат.", s14p2:"Заглушка · диагностика (симуляция мониторинга) — вне скоупа v1",
+  warmup:[
+    {q:"17 ÷ 5 = ?", opts:["3, остаток 2","2, остаток 7","3, остаток 1","4, остаток 0"]},
+    {q:"23 ÷ 4 = ?", opts:["4, остаток 7","5, остаток 3","6, остаток 1","5, остаток 2"]},
+    {q:"31 ÷ 6 = ?", opts:["4, остаток 7","6, остаток 0","5, остаток 1","5, остаток 2"]},
+  ],
+  slides:[
+    {t:"Деление с остатком", body:`<div class="formula">17 ÷ 5 = 3 (ост. 2)</div><div class="sub" style="font-size:17px">Иногда разделить поровну не получается —<br>и тогда появляется <b>остаток</b></div>`},
+    {t:"17 конфет по 5 в пакет", body:`<div class="dots-vis">
+      <div class="dgroup"><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="dgroup"><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="dgroup"><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="dgroup rest"><i></i><i></i></div>
+    </div><div class="sub" style="font-size:17px">3 полных пакета и <b style="color:#B9871F">2 конфеты остались</b></div>`},
+    {t:"Главное правило", body:`<div class="formula">остаток &lt; делитель</div><div class="sub" style="font-size:17px">Остаток всегда меньше числа, на которое делим.<br>Если получился больше — можно разделить ещё раз!</div>`},
+  ],
+  extask:[
+    {q:"28 ÷ 6 = ?", opts:["4, остаток 4","5, остаток 2","4, остаток 2"]},
+    {q:"Может ли остаток при делении на 6 быть равен 6?", opts:["да","нет"]},
+  ],
+  practice:[
+    {text:"У Лейлы 26 конфет. Она раскладывает их в пакеты по 6 конфет. Сколько получится полных пакетов и сколько конфет останется?", fields:[{l:"Пакетов"},{l:"Останется"}]},
+    {text:"В коробку помещается 8 машинок. У Тимура 35 машинок. Сколько коробок он заполнит и сколько машинок останется без коробки?", fields:[{l:"Коробок"},{l:"Останется"}]},
+    {text:"Реши в тетради: 74 ÷ 9. Запиши решение по шагам — проверь себя умножением.", fields:[]},
+  ],
+  homework:[
+    {q:"39 ÷ 5 = ?", opts:["7, остаток 4","8, остаток 1","7, остаток 5"]},
+    {q:"25 ÷ 7 = ?", opts:["3, остаток 4","4, остаток 3","3, остаток 5"]},
+    {q:"50 ÷ 8 = ?", opts:["5, остаток 10","6, остаток 2","7, остаток 6"]},
+    {q:"19 ÷ 2 = ?", opts:["9, остаток 1","8, остаток 3","9, остаток 0"]},
+    {q:"44 ÷ 6 = ?", opts:["6, остаток 8","7, остаток 2","8, остаток 4"]},
+    {q:"61 ÷ 10 = ?", opts:["6, остаток 1","5, остаток 11","6, остаток 0"]},
+  ],
+  mso:[
+    {q:"52 ÷ 7 = ?", opts:["7, остаток 3","6, остаток 10","8, остаток 4"]},
+    {q:"Какой самый большой остаток может получиться при делении на 9?", opts:["9","8","1"]},
+    {q:"У Мурада 43 наклейки. Он раздаёт их друзьям по 5 штук. Скольким друзьям хватит наклеек и сколько наклеек останется у Мурада?", fields:[{l:"Друзьям"},{l:"Останется"}]},
+    {q:"В лифт помещается 6 человек. Сколько раз лифт должен подняться, чтобы перевезти 27 человек?", fields:[{l:"Подъёмов"}]},
+    {q:"Реши задачу и запиши решение по шагам: в театр едут 94 ученика на автобусах по 12 мест. Сколько автобусов нужно заказать? Объясни ответ.", crit:["Верно выбрано действие — деление с остатком","Верно найдены частное и остаток","Дан ответ с учётом остатка (8 автобусов)"]},
+  ],
+  feedback:{topic:"Деление с остатком", good:"Уверенно находишь, сколько выходит целых групп и какой получается остаток.", grow:"Стоит ещё потренировать проверку умножением — поэтому в домашке есть похожие задачи."},
+  reflcrit:["Нахожу неполное частное и остаток","Проверяю деление умножением","Помню, что остаток меньше делителя"],
+  critlevels:[["😕","Не понял"],["🙂","Понимаю сам"],["🤩","Понимаю и могу научить другого"]],
+  topics:[{nm:"Умножение на двузначное число"},{nm:"Площадь прямоугольника"},{nm:"Уравнения с одним неизвестным"},{nm:"Скорость, время, расстояние", why:"Урок 79 · 12 мая · была на больничном"},{nm:"Деление с остатком"},{nm:"Деление многозначных чисел"},{nm:"Дроби: знакомство"}],
+  reflemojis:[["😴","Скучно"],["😐","Так себе"],["🙂","Понравилось"],["🤩","Очень круто"]],
+};
+
 /* ================= init ================= */
-buildNav();setPhaseLvl(phaseLvl);
+setLang(lang);        // задаёт язык, собирает данные, шапку, навигацию и рендерит
+setPhaseLvl(phaseLvl);
 </script>
 </body>
 </html>
